@@ -30,46 +30,59 @@ public class DoraDashboardAction implements RootAction {
 
     // === Dashboard data for Jelly ===
 
+    private static final DoraMetric EMPTY_METRIC =
+            new DoraMetric("N/A", "N/A", DoraCalculator.DoraBand.LOW, 0);
+
     public DoraMetric getDeploymentFrequency() {
-        return new DoraCalculator().deploymentFrequency(thirtyDaysAgo(), now(), getPattern());
+        try { return new DoraCalculator().deploymentFrequency(thirtyDaysAgo(), now(), getPattern()); }
+        catch (Exception e) { return EMPTY_METRIC; }
     }
 
     public DoraMetric getLeadTime() {
-        return new DoraCalculator().leadTimeForChanges(thirtyDaysAgo(), now(), getPattern());
+        try { return new DoraCalculator().leadTimeForChanges(thirtyDaysAgo(), now(), getPattern()); }
+        catch (Exception e) { return EMPTY_METRIC; }
     }
 
     public DoraMetric getMttr() {
-        return new DoraCalculator().meanTimeToRestore(thirtyDaysAgo(), now(), getPattern());
+        try { return new DoraCalculator().meanTimeToRestore(thirtyDaysAgo(), now(), getPattern()); }
+        catch (Exception e) { return EMPTY_METRIC; }
     }
 
     public DoraMetric getChangeFailureRate() {
-        return new DoraCalculator().changeFailureRate(thirtyDaysAgo(), now(), getPattern());
+        try { return new DoraCalculator().changeFailureRate(thirtyDaysAgo(), now(), getPattern()); }
+        catch (Exception e) { return EMPTY_METRIC; }
     }
 
     public List<RankedPipeline> getSlowestPipelines() {
-        return new PipelineRanker().slowestPipelines(thirtyDaysAgo(), now(), getTopN());
+        try { return new PipelineRanker().slowestPipelines(thirtyDaysAgo(), now(), getTopN()); }
+        catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getMostFailingPipelines() {
-        return new PipelineRanker().mostFailingPipelines(thirtyDaysAgo(), now(), getTopN());
+        try { return new PipelineRanker().mostFailingPipelines(thirtyDaysAgo(), now(), getTopN()); }
+        catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getMostImprovedPipelines() {
-        long n = now();
-        long ago = thirtyDaysAgo();
-        return new PipelineRanker().mostImproved(ago, n, ago - (30L * 86400_000), ago, getTopN());
+        try {
+            long n = now(); long ago = thirtyDaysAgo();
+            return new PipelineRanker().mostImproved(ago, n, ago - (30L * 86400_000), ago, getTopN());
+        } catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getFlakiestPipelines() {
-        return new PipelineRanker().flakiestPipelines(thirtyDaysAgo(), now(), getTopN());
+        try { return new PipelineRanker().flakiestPipelines(thirtyDaysAgo(), now(), getTopN()); }
+        catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedStage> getSlowestStages() {
-        return new PipelineRanker().slowestStages(thirtyDaysAgo(), now(), getTopN());
+        try { return new PipelineRanker().slowestStages(thirtyDaysAgo(), now(), getTopN()); }
+        catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedStage> getMostFailingStages() {
-        return new PipelineRanker().mostFailingStages(thirtyDaysAgo(), now(), getTopN());
+        try { return new PipelineRanker().mostFailingStages(thirtyDaysAgo(), now(), getTopN()); }
+        catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     /**

@@ -74,7 +74,7 @@
         </f:section>
 
         <f:section title="DORA Band Thresholds">
-            <f:advanced title="Customize DORA performance bands">
+            <f:section title="Customize DORA performance bands">
                 <f:entry title="Deployment Frequency - Elite (deploys/day)" field="dfEliteThreshold">
                     <f:textbox default="1.0"/>
                 </f:entry>
@@ -111,7 +111,7 @@
                 <f:entry title="Change Failure Rate - Medium (%)" field="cfrMediumPercent">
                     <f:textbox default="15.0"/>
                 </f:entry>
-            </f:advanced>
+            </f:section>
         </f:section>
 
     </f:section>

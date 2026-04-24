@@ -61,8 +61,8 @@ public class MetricsStore {
         return instance;
     }
 
-    /** Package-private for testing. */
-    static synchronized void setInstance(MetricsStore store) {
+    /** Reset singleton. Used by tests to reinitialize with fresh Jenkins home. */
+    public static synchronized void setInstance(MetricsStore store) {
         instance = store;
     }
 

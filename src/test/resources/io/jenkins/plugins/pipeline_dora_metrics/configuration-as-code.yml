@@ -1,0 +1,6 @@
+unclassified:
+  doraGlobalConfiguration:
+    productionJobPattern: ".*"
+    excludedJobPattern: ""
+    retentionDays: 365
+    dashboardTopN: 10
