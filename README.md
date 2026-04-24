@@ -80,11 +80,21 @@ The plugin is built against the Jenkins LTS baseline `2.541.3` and uses the Jenk
 
 ## Installation
 
-1. Download the `.hpi` file from the [Releases](https://github.com/Bisman-Singh/pipeline-dora-metrics/releases) page
-2. Go to Jenkins > Manage Plugins > Advanced > Upload Plugin
-3. Upload the `.hpi` file and restart Jenkins
+**From Jenkins Plugin Manager (after publishing):**
+1. Go to Manage Jenkins > Plugins > Available plugins
+2. Search for "Pipeline DORA Metrics"
+3. Check the box and click Install
+4. Restart Jenkins when prompted
 
-The plugin will automatically start collecting metrics from all pipeline builds. No additional configuration required for basic usage.
+**Manual install:**
+1. Download the `.hpi` file from the [Releases](https://github.com/Bisman-Singh/pipeline-dora-metrics/releases) page
+2. Go to Manage Jenkins > Plugins > Advanced > Deploy Plugin
+3. Upload the `.hpi` file
+4. Restart Jenkins
+
+A restart is required after installation. Once restarted, the plugin begins working immediately with zero configuration.
+
+**Important:** The plugin only tracks builds that complete **after** installation. Existing build history is not retroactively imported. The dashboard will show N/A until the first build runs with the plugin active.
 
 ## Build from Source
 
@@ -156,6 +166,33 @@ io.jenkins.plugins.dorametrics/
 - SQL queries use parameterized statements (no SQL injection)
 - CSV export protects against CSV injection attacks
 - SQL ORDER BY clauses are whitelisted (not user-controlled)
+
+## Roadmap
+
+**v1.1 (Planned)**
+- External storage export (AWS S3, GCS, Azure Blob, Backblaze B2) with proper SDK auth and IAM role support
+- Historical build import (backfill metrics from existing Jenkins build history)
+- Grafana dashboard template (JSON) that consumes the REST API
+
+**v1.2 (Planned)**
+- Month-over-month comparison view (side-by-side metrics)
+- DORA band progression chart (track your team's improvement over time)
+- Stage failure heatmap visualization
+- Webhook notifications when DORA bands change (Slack, Teams, email)
+
+**v2.0 (Future)**
+- Multi-controller aggregation (combine metrics across Jenkins instances)
+- Team/group-level DORA metrics (assign jobs to teams)
+- GitHub Actions and GitLab CI support (beyond Jenkins)
+- Connection pooling with HikariCP for enterprise scale
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Write tests for new functionality
+4. Run `mvn test` (all 65 tests must pass)
+5. Submit a pull request
 
 ## License
 
