@@ -1,0 +1,95 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
+<l:layout title="DORA Metrics - ${it.jobName}" norefresh="true">
+    <l:main-panel>
+        <style>
+            .job-dora { max-width: 1200px; margin: 0 auto; padding: 20px; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+            .job-dora h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+            .job-dora .subtitle { color: #656d76; font-size: 14px; margin-bottom: 24px; }
+
+            .job-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+            .job-stat { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 16px; text-align: center; }
+            .job-stat-value { font-size: 28px; font-weight: 700; }
+            .job-stat-label { font-size: 12px; color: #656d76; margin-top: 4px; }
+
+            .dora-cards { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 24px; }
+            .dora-card { background: #fff; border: 1px solid #d0d7de; border-radius: 8px; padding: 16px; }
+            .dora-card-label { font-size: 11px; color: #656d76; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+            .dora-card-value { font-size: 26px; font-weight: 700; margin-bottom: 6px; }
+            .dora-card-band { display: inline-block; font-size: 11px; font-weight: 600; padding: 2px 8px; border-radius: 12px; color: #fff; }
+
+            .stage-table { width: 100%; border-collapse: collapse; font-size: 13px; background: #fff; border: 1px solid #d0d7de; border-radius: 8px; }
+            .stage-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid #d0d7de; color: #656d76; font-weight: 500; }
+            .stage-table td { padding: 8px 12px; border-bottom: 1px solid #eaeef2; }
+            .stage-table tr:last-child td { border-bottom: none; }
+            .val-col { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
+        </style>
+
+        <div class="job-dora">
+            <h1>DORA Metrics</h1>
+            <div class="subtitle">${it.jobName} | Last 30 days</div>
+
+            <!-- Quick Stats -->
+            <div class="job-stats">
+                <div class="job-stat">
+                    <div class="job-stat-value">${it.totalBuilds}</div>
+                    <div class="job-stat-label">Total Builds</div>
+                </div>
+                <div class="job-stat">
+                    <div class="job-stat-value">${it.successfulBuilds} / ${it.failedBuilds}</div>
+                    <div class="job-stat-label">Success / Failed</div>
+                </div>
+                <div class="job-stat">
+                    <div class="job-stat-value">${it.avgDurationFormatted}</div>
+                    <div class="job-stat-label">Avg Duration</div>
+                </div>
+            </div>
+
+            <!-- DORA Cards -->
+            <div class="dora-cards">
+                <j:set var="df" value="${it.deploymentFrequency}"/>
+                <div class="dora-card">
+                    <div class="dora-card-label">Deploy Frequency</div>
+                    <div class="dora-card-value">${df.displayValue}</div>
+                    <span class="dora-card-band" style="background-color: ${df.band.color}">${df.band.label}</span>
+                </div>
+
+                <j:set var="leadTime" value="${it.leadTime}"/>
+                <div class="dora-card">
+                    <div class="dora-card-label">Lead Time</div>
+                    <div class="dora-card-value">${leadTime.displayValue}</div>
+                    <span class="dora-card-band" style="background-color: ${leadTime.band.color}">${leadTime.band.label}</span>
+                </div>
+
+                <j:set var="mttr" value="${it.mttr}"/>
+                <div class="dora-card">
+                    <div class="dora-card-label">MTTR</div>
+                    <div class="dora-card-value">${mttr.displayValue}</div>
+                    <span class="dora-card-band" style="background-color: ${mttr.band.color}">${mttr.band.label}</span>
+                </div>
+
+                <j:set var="cfr" value="${it.changeFailureRate}"/>
+                <div class="dora-card">
+                    <div class="dora-card-label">Failure Rate</div>
+                    <div class="dora-card-value">${cfr.displayValue}</div>
+                    <span class="dora-card-band" style="background-color: ${cfr.band.color}">${cfr.band.label}</span>
+                </div>
+            </div>
+
+            <!-- Stage Breakdown -->
+            <h2 style="font-size: 16px; margin: 24px 0 12px 0;">Stage Breakdown</h2>
+            <table class="stage-table">
+                <tr><th>#</th><th>Stage</th><th class="val-col">Avg Duration</th><th class="val-col">Runs</th></tr>
+                <j:forEach var="s" items="${it.slowestStages}" varStatus="i">
+                    <tr>
+                        <td style="color: #656d76;">${i.index + 1}</td>
+                        <td>${s.stageName}</td>
+                        <td class="val-col">${s.displayValue}</td>
+                        <td class="val-col">${s.occurrences}</td>
+                    </tr>
+                </j:forEach>
+            </table>
+        </div>
+    </l:main-panel>
+</l:layout>
+</j:jelly>

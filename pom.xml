@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.jenkins-ci.plugins</groupId>
+        <artifactId>plugin</artifactId>
+        <version>4.88</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>io.jenkins.plugins</groupId>
+    <artifactId>pipeline-dora-metrics</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <packaging>hpi</packaging>
+
+    <name>Pipeline DORA Metrics</name>
+    <description>DORA metrics, pipeline analytics, rankings, and trend analysis for Jenkins pipelines</description>
+    <url>https://github.com/Bisman-Singh/pipeline-dora-metrics</url>
+
+    <licenses>
+        <license>
+            <name>MIT License</name>
+            <url>https://opensource.org/license/mit</url>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <id>bisman-singh</id>
+            <name>Bisman Singh</name>
+            <email>bismanmadaan1@gmail.com</email>
+        </developer>
+    </developers>
+
+    <scm>
+        <connection>scm:git:https://github.com/Bisman-Singh/pipeline-dora-metrics.git</connection>
+        <developerConnection>scm:git:git@github.com:Bisman-Singh/pipeline-dora-metrics.git</developerConnection>
+        <url>https://github.com/Bisman-Singh/pipeline-dora-metrics</url>
+        <tag>HEAD</tag>
+    </scm>
+
+    <properties>
+        <jenkins.version>2.541.3</jenkins.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>io.jenkins.tools.bom</groupId>
+                <artifactId>bom-2.541.x</artifactId>
+                <version>6329.v403d8c87a_5ce</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <!-- Servlet API (provided by Jenkins) -->
+        <dependency>
+            <groupId>jakarta.servlet</groupId>
+            <artifactId>jakarta.servlet-api</artifactId>
+            <version>6.0.0</version>
+            <scope>provided</scope>
+        </dependency>
+
+        <!-- H2 embedded database -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <version>2.2.224</version>
+        </dependency>
+
+        <!-- Pipeline API for stage-level data -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-api</artifactId>
+        </dependency>
+
+        <!-- Pipeline job support -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-job</artifactId>
+        </dependency>
+
+        <!-- Git plugin for SCM change data -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins</groupId>
+            <artifactId>git</artifactId>
+        </dependency>
+
+        <!-- Pipeline CPS for stage node types -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-cps</artifactId>
+        </dependency>
+
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-basic-steps</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.jenkins-ci.plugins.workflow</groupId>
+            <artifactId>workflow-durable-task-step</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>repo.jenkins-ci.org</id>
+            <url>https://repo.jenkins-ci.org/public/</url>
+        </pluginRepository>
+    </pluginRepositories>
+</project>

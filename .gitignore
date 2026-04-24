@@ -1,0 +1,16 @@
+target/
+*.class
+*.jar
+*.hpi
+*.jpi
+*.war
+*.iml
+.idea/
+.project
+.classpath
+.settings/
+*.swp
+*.swo
+*~
+.DS_Store
+work/

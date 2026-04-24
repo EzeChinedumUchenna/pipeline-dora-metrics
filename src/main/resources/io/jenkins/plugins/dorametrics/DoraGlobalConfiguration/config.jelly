@@ -1,0 +1,118 @@
+<?jelly escape-by-default='true'?>
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
+    <f:section title="Pipeline DORA Metrics">
+
+        <f:section title="Job Filtering">
+            <f:entry title="Production Job Pattern" field="productionJobPattern"
+                     description="Regex to match production jobs (e.g., '.*-prod.*' or '.*deploy.*'). Use '.*' for all jobs.">
+                <f:textbox default=".*"/>
+            </f:entry>
+            <f:entry title="Excluded Job Pattern" field="excludedJobPattern"
+                     description="Regex for jobs to exclude (e.g., '.*-test.*|.*-sandbox.*'). Leave empty to include all.">
+                <f:textbox default=""/>
+            </f:entry>
+            <f:entry title="Production Folders" field="productionFolders"
+                     description="Comma-separated Jenkins folder paths to treat as production (e.g., 'production,deploy/prod'). Leave empty to use pattern matching only.">
+                <f:textbox default=""/>
+            </f:entry>
+            <f:entry title="Production Branch Pattern" field="productionBranchPattern"
+                     description="Regex for branches that count as production deployments (e.g., 'main|master|release/.*').">
+                <f:textbox default="main|master"/>
+            </f:entry>
+            <f:entry title="Production Job Label" field="productionJobLabel"
+                     description="Jenkins job parameter or label name to mark individual jobs as production.">
+                <f:textbox default="dora-production"/>
+            </f:entry>
+            <f:entry title="Track All Branches" field="trackAllBranches"
+                     description="If checked, all branches are tracked in rankings/analytics. If unchecked, only production branches count for DORA metrics.">
+                <f:checkbox default="true"/>
+            </f:entry>
+        </f:section>
+
+        <f:section title="General">
+            <f:entry title="Data Retention (days)" field="retentionDays"
+                     description="How many days of metrics to retain. Older data is cleaned up automatically.">
+                <f:textbox default="365"/>
+            </f:entry>
+            <f:entry title="Dashboard Top N" field="dashboardTopN"
+                     description="Number of pipelines to show in each ranking table.">
+                <f:textbox default="10"/>
+            </f:entry>
+        </f:section>
+
+        <f:section title="External Storage Export">
+            <f:entry title="Enable Export" field="exportEnabled"
+                     description="Export daily metrics snapshots to external storage for backup and analysis.">
+                <f:checkbox default="false"/>
+            </f:entry>
+            <f:entry title="Storage Type" field="exportStorageType"
+                     description="Where to export metrics data. All options support role-based auth (no keys needed).">
+                <f:select>
+                    <f:option value="LOCAL" selected="${instance.exportStorageType == 'LOCAL'}">Local Only (No Export)</f:option>
+                    <f:option value="S3" selected="${instance.exportStorageType == 'S3'}">S3-Compatible (AWS S3, Backblaze B2, MinIO)</f:option>
+                    <f:option value="GCS" selected="${instance.exportStorageType == 'GCS'}">Google Cloud Storage</f:option>
+                    <f:option value="AZURE" selected="${instance.exportStorageType == 'AZURE'}">Azure Blob Storage</f:option>
+                    <f:option value="HTTP" selected="${instance.exportStorageType == 'HTTP'}">HTTP Endpoint</f:option>
+                </f:select>
+            </f:entry>
+            <f:entry title="Endpoint URL" field="exportEndpoint"
+                     description="S3: https://s3.amazonaws.com or B2: https://s3.us-west-000.backblazeb2.com. GCS/Azure: leave empty for defaults. HTTP: your endpoint URL.">
+                <f:textbox default=""/>
+            </f:entry>
+            <f:entry title="Bucket / Container" field="exportBucket"
+                     description="S3 bucket, GCS bucket, or Azure container name.">
+                <f:textbox default=""/>
+            </f:entry>
+            <f:entry title="Access Key / Token" field="exportAccessKey"
+                     description="Optional. Leave empty to use IAM roles (EC2 instance profile, GKE workload identity, Azure managed identity). For explicit auth: S3 Access Key ID, GCS OAuth2 token, Azure SAS token, or HTTP Bearer token.">
+                <f:textbox default=""/>
+            </f:entry>
+            <f:entry title="Secret Key" field="exportSecretKey"
+                     description="Optional. S3 Secret Access Key only. Leave empty for role-based auth or other providers.">
+                <f:password default=""/>
+            </f:entry>
+        </f:section>
+
+        <f:section title="DORA Band Thresholds">
+            <f:advanced title="Customize DORA performance bands">
+                <f:entry title="Deployment Frequency - Elite (deploys/day)" field="dfEliteThreshold">
+                    <f:textbox default="1.0"/>
+                </f:entry>
+                <f:entry title="Deployment Frequency - High (deploys/day)" field="dfHighThreshold">
+                    <f:textbox default="0.142"/>
+                </f:entry>
+                <f:entry title="Deployment Frequency - Medium (deploys/day)" field="dfMediumThreshold">
+                    <f:textbox default="0.033"/>
+                </f:entry>
+                <f:entry title="Lead Time - Elite (ms)" field="ltEliteMs">
+                    <f:textbox default="3600000"/>
+                </f:entry>
+                <f:entry title="Lead Time - High (ms)" field="ltHighMs">
+                    <f:textbox default="86400000"/>
+                </f:entry>
+                <f:entry title="Lead Time - Medium (ms)" field="ltMediumMs">
+                    <f:textbox default="604800000"/>
+                </f:entry>
+                <f:entry title="MTTR - Elite (ms)" field="mttrEliteMs">
+                    <f:textbox default="3600000"/>
+                </f:entry>
+                <f:entry title="MTTR - High (ms)" field="mttrHighMs">
+                    <f:textbox default="86400000"/>
+                </f:entry>
+                <f:entry title="MTTR - Medium (ms)" field="mttrMediumMs">
+                    <f:textbox default="604800000"/>
+                </f:entry>
+                <f:entry title="Change Failure Rate - Elite (%)" field="cfrElitePercent">
+                    <f:textbox default="5.0"/>
+                </f:entry>
+                <f:entry title="Change Failure Rate - High (%)" field="cfrHighPercent">
+                    <f:textbox default="10.0"/>
+                </f:entry>
+                <f:entry title="Change Failure Rate - Medium (%)" field="cfrMediumPercent">
+                    <f:textbox default="15.0"/>
+                </f:entry>
+            </f:advanced>
+        </f:section>
+
+    </f:section>
+</j:jelly>
