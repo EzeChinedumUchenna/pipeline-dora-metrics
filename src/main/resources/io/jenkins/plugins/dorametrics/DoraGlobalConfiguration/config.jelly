@@ -65,7 +65,7 @@
             </f:entry>
             <f:entry title="Access Key / Token" field="exportAccessKey"
                      description="Optional. Leave empty to use IAM roles (EC2 instance profile, GKE workload identity, Azure managed identity). For explicit auth: S3 Access Key ID, GCS OAuth2 token, Azure SAS token, or HTTP Bearer token.">
-                <f:textbox default=""/>
+                <f:password default=""/>
             </f:entry>
             <f:entry title="Secret Key" field="exportSecretKey"
                      description="Optional. S3 Secret Access Key only. Leave empty for role-based auth or other providers.">

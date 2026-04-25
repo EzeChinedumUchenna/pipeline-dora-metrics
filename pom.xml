@@ -7,18 +7,18 @@
     <parent>
         <groupId>org.jenkins-ci.plugins</groupId>
         <artifactId>plugin</artifactId>
-        <version>4.88</version>
+        <version>6.2153.vcf31911d10c4</version>
         <relativePath/>
     </parent>
 
     <groupId>io.jenkins.plugins</groupId>
     <artifactId>pipeline-dora-metrics</artifactId>
-    <version>1.0-SNAPSHOT</version>
+    <version>${changelist}</version>
     <packaging>hpi</packaging>
 
     <name>Pipeline DORA Metrics</name>
     <description>DORA metrics, pipeline analytics, rankings, and trend analysis for Jenkins pipelines</description>
-    <url>https://github.com/Bisman-Singh/pipeline-dora-metrics</url>
+    <url>https://github.com/jenkinsci/pipeline-dora-metrics-plugin</url>
 
     <licenses>
         <license>
@@ -27,24 +27,23 @@
         </license>
     </licenses>
 
-    <developers>
-        <developer>
-            <id>bisman-singh</id>
-            <name>Bisman Singh</name>
-            <email>bismanmadaan1@gmail.com</email>
-        </developer>
-    </developers>
-
     <scm>
-        <connection>scm:git:https://github.com/Bisman-Singh/pipeline-dora-metrics.git</connection>
-        <developerConnection>scm:git:git@github.com:Bisman-Singh/pipeline-dora-metrics.git</developerConnection>
-        <url>https://github.com/Bisman-Singh/pipeline-dora-metrics</url>
-        <tag>HEAD</tag>
+        <connection>scm:git:https://github.com/${gitHubRepo}.git</connection>
+        <developerConnection>scm:git:git@github.com:${gitHubRepo}.git</developerConnection>
+        <url>https://github.com/${gitHubRepo}</url>
+        <tag>${scmTag}</tag>
     </scm>
 
     <properties>
-        <jenkins.version>2.541.3</jenkins.version>
+        <changelist>999999-SNAPSHOT</changelist>
+        <gitHubRepo>jenkinsci/pipeline-dora-metrics-plugin</gitHubRepo>
+        <jenkins.baseline>2.541</jenkins.baseline>
+        <jenkins.version>${jenkins.baseline}.3</jenkins.version>
         <no-test-jar>true</no-test-jar>
+        <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
+        <ban-deprecated-stapler.skip>false</ban-deprecated-stapler.skip>
+        <ban-commons-lang-2.skip>false</ban-commons-lang-2.skip>
+        <hpi.bundledArtifacts>h2</hpi.bundledArtifacts>
     </properties>
 
     <build>
@@ -65,8 +64,8 @@
         <dependencies>
             <dependency>
                 <groupId>io.jenkins.tools.bom</groupId>
-                <artifactId>bom-2.541.x</artifactId>
-                <version>6329.v403d8c87a_5ce</version>
+                <artifactId>bom-${jenkins.baseline}.x</artifactId>
+                <version>6364.v16b_76a_4023c7</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>

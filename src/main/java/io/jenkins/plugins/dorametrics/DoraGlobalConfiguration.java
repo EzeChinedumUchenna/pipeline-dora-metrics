@@ -4,7 +4,7 @@ import hudson.Extension;
 import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
-import org.kohsuke.stapler.StaplerRequest;
+import org.kohsuke.stapler.StaplerRequest2;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -31,7 +31,7 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
     // External storage export
     private String exportStorageType = "LOCAL";
     private String exportEndpoint = "";
-    private String exportAccessKey = "";
+    private Secret exportAccessKey;
     private Secret exportSecretKey;
     private String exportBucket = "";
     private boolean exportEnabled = false;
@@ -64,7 +64,7 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
     }
 
     @Override
-    public boolean configure(StaplerRequest req, JSONObject json) throws FormException {
+    public boolean configure(StaplerRequest2 req, JSONObject json) throws FormException {
         this.productionJobPattern = validateRegex(json.optString("productionJobPattern", ".*"), ".*");
         this.excludedJobPattern = validateRegex(json.optString("excludedJobPattern", ""), "");
         this.productionBranchPattern = validateRegex(json.optString("productionBranchPattern", "main|master"), "main|master");
@@ -76,7 +76,7 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
 
         this.exportStorageType = json.optString("exportStorageType", "LOCAL");
         this.exportEndpoint = json.optString("exportEndpoint", "");
-        this.exportAccessKey = json.optString("exportAccessKey", "");
+        this.exportAccessKey = Secret.fromString(json.optString("exportAccessKey", ""));
         this.exportSecretKey = Secret.fromString(json.optString("exportSecretKey", ""));
         this.exportBucket = json.optString("exportBucket", "");
         this.exportEnabled = json.optBoolean("exportEnabled", false);
@@ -192,8 +192,8 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
     public String getExportEndpoint() { return exportEndpoint; }
     public void setExportEndpoint(String v) { this.exportEndpoint = v; }
 
-    public String getExportAccessKey() { return exportAccessKey; }
-    public void setExportAccessKey(String v) { this.exportAccessKey = v; }
+    public Secret getExportAccessKey() { return exportAccessKey; }
+    public void setExportAccessKey(Secret v) { this.exportAccessKey = v; }
 
     public Secret getExportSecretKey() { return exportSecretKey; }
     public void setExportSecretKey(Secret v) { this.exportSecretKey = v; }
