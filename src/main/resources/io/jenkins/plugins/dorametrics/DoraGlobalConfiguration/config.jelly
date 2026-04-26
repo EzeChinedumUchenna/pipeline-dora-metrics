@@ -32,11 +32,11 @@
         <f:section title="General">
             <f:entry title="Data Retention (days)" field="retentionDays"
                      description="How many days of metrics to retain. Older data is cleaned up automatically.">
-                <f:textbox default="365"/>
+                <f:number default="365"/>
             </f:entry>
             <f:entry title="Dashboard Top N" field="dashboardTopN"
                      description="Number of pipelines to show in each ranking table.">
-                <f:textbox default="10"/>
+                <f:number default="10"/>
             </f:entry>
         </f:section>
 
@@ -64,7 +64,7 @@
                 <f:textbox default=""/>
             </f:entry>
             <f:entry title="Access Key / Token" field="exportAccessKey"
-                     description="Optional. Leave empty to use IAM roles (EC2 instance profile, GKE workload identity, Azure managed identity). For explicit auth: S3 Access Key ID, GCS OAuth2 token, Azure SAS token, or HTTP Bearer token.">
+                     description="Optional. Leave empty to use IAM roles. For explicit auth: S3 Access Key ID, GCS OAuth2 token, Azure SAS token, or HTTP Bearer token.">
                 <f:password default=""/>
             </f:entry>
             <f:entry title="Secret Key" field="exportSecretKey"
@@ -76,40 +76,40 @@
         <f:section title="DORA Band Thresholds">
             <f:section title="Customize DORA performance bands">
                 <f:entry title="Deployment Frequency - Elite (deploys/day)" field="dfEliteThreshold">
-                    <f:textbox default="1.0"/>
+                    <f:number default="1.0"/>
                 </f:entry>
                 <f:entry title="Deployment Frequency - High (deploys/day)" field="dfHighThreshold">
-                    <f:textbox default="0.142"/>
+                    <f:number default="0.142"/>
                 </f:entry>
                 <f:entry title="Deployment Frequency - Medium (deploys/day)" field="dfMediumThreshold">
-                    <f:textbox default="0.033"/>
+                    <f:number default="0.033"/>
                 </f:entry>
                 <f:entry title="Lead Time - Elite (ms)" field="ltEliteMs">
-                    <f:textbox default="3600000"/>
+                    <f:number default="3600000"/>
                 </f:entry>
                 <f:entry title="Lead Time - High (ms)" field="ltHighMs">
-                    <f:textbox default="86400000"/>
+                    <f:number default="86400000"/>
                 </f:entry>
                 <f:entry title="Lead Time - Medium (ms)" field="ltMediumMs">
-                    <f:textbox default="604800000"/>
+                    <f:number default="604800000"/>
                 </f:entry>
                 <f:entry title="MTTR - Elite (ms)" field="mttrEliteMs">
-                    <f:textbox default="3600000"/>
+                    <f:number default="3600000"/>
                 </f:entry>
                 <f:entry title="MTTR - High (ms)" field="mttrHighMs">
-                    <f:textbox default="86400000"/>
+                    <f:number default="86400000"/>
                 </f:entry>
                 <f:entry title="MTTR - Medium (ms)" field="mttrMediumMs">
-                    <f:textbox default="604800000"/>
+                    <f:number default="604800000"/>
                 </f:entry>
                 <f:entry title="Change Failure Rate - Elite (%)" field="cfrElitePercent">
-                    <f:textbox default="5.0"/>
+                    <f:number default="5.0"/>
                 </f:entry>
                 <f:entry title="Change Failure Rate - High (%)" field="cfrHighPercent">
-                    <f:textbox default="10.0"/>
+                    <f:number default="10.0"/>
                 </f:entry>
                 <f:entry title="Change Failure Rate - Medium (%)" field="cfrMediumPercent">
-                    <f:textbox default="15.0"/>
+                    <f:number default="15.0"/>
                 </f:entry>
             </f:section>
         </f:section>

@@ -73,15 +73,7 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- Servlet API (provided by Jenkins) -->
-        <dependency>
-            <groupId>jakarta.servlet</groupId>
-            <artifactId>jakarta.servlet-api</artifactId>
-            <version>6.0.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <!-- H2 embedded database -->
+        <!-- H2 embedded database (TODO: migrate to database-api plugin when h2-api is updated) -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
