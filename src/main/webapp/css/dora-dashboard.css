@@ -54,3 +54,21 @@ table.dora-table col.col-count { width: 50px; }
 
 .dora-api-info { background: var(--volume-bar-bg, #f8f8f8); border: 1px solid var(--pane-border-color, #ccc); border-radius: var(--form-input-border-radius, 6px); padding: 14px; }
 .dora-api-info code { background: var(--volume-bar-bg, #eee); padding: 2px 5px; border-radius: 3px; font-size: 11px; }
+
+/* Per-job metrics page */
+.job-dora { max-width: 1200px; margin: 0 auto; padding: 20px; }
+.job-dora h1 { font-size: 22px; font-weight: 600; margin: 0 0 4px 0; }
+.job-dora .subtitle { color: var(--text-color-secondary, #656d76); font-size: 14px; margin-bottom: 24px; }
+.job-dora h2 { font-size: 16px; margin: 24px 0 12px 0; }
+
+.job-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 24px; }
+.job-stat { background: var(--pane-header-bg, #fff); border: 1px solid var(--pane-border-color, #d0d7de); border-radius: var(--form-input-border-radius, 8px); padding: 16px; text-align: center; }
+.job-stat-value { font-size: 28px; font-weight: 700; }
+.job-stat-label { font-size: 12px; color: var(--text-color-secondary, #656d76); margin-top: 4px; }
+
+.stage-table { width: 100%; border-collapse: collapse; font-size: 13px; background: var(--pane-header-bg, #fff); border: 1px solid var(--pane-border-color, #d0d7de); border-radius: var(--form-input-border-radius, 8px); }
+.stage-table th { text-align: left; padding: 8px 12px; border-bottom: 2px solid var(--pane-border-color, #d0d7de); color: var(--text-color-secondary, #656d76); font-weight: 500; }
+.stage-table td { padding: 8px 12px; border-bottom: 1px solid var(--table-body-border, #eaeef2); }
+.stage-table tr:last-child td { border-bottom: none; }
+.stage-table .rank-col { color: var(--text-color-secondary, #656d76); }
+.val-col { text-align: right; font-weight: 600; font-variant-numeric: tabular-nums; }
