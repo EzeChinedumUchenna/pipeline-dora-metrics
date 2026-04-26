@@ -4,6 +4,7 @@ import jenkins.model.Jenkins;
 
 import java.io.File;
 import java.sql.Connection;
+import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -16,8 +17,8 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * H2 embedded database for storing build metrics.
- * Located at JENKINS_HOME/pipeline-dora-metrics/metrics
+ * SQLite embedded database for storing build metrics.
+ * Located at JENKINS_HOME/pipeline-dora-metrics/metrics.db
  */
 public class MetricsStore {
 
@@ -29,7 +30,7 @@ public class MetricsStore {
             "total DESC", "total ASC"
     );
 
-    private final org.h2.jdbcx.JdbcDataSource dataSource;
+    private final String dbUrl;
 
     private MetricsStore() {
         File jenkinsHome = Jenkins.get().getRootDir();
@@ -37,20 +38,25 @@ public class MetricsStore {
         if (!dbDir.exists()) {
             dbDir.mkdirs();
         }
-        String dbUrl = "jdbc:h2:file:" + new File(dbDir, "metrics").getAbsolutePath()
-                + ";AUTO_SERVER=TRUE;MODE=MySQL";
+        this.dbUrl = "jdbc:sqlite:" + new File(dbDir, "metrics.db").getAbsolutePath();
 
-        this.dataSource = new org.h2.jdbcx.JdbcDataSource();
-        this.dataSource.setURL(dbUrl);
-        this.dataSource.setUser("sa");
-        this.dataSource.setPassword("");
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            LOGGER.log(Level.SEVERE, "SQLite JDBC driver not found", e);
+        }
 
         initializeSchema();
     }
 
-    /** Package-private for testing. */
-    MetricsStore(org.h2.jdbcx.JdbcDataSource ds) {
-        this.dataSource = ds;
+    /** Constructor for testing. */
+    MetricsStore(String dbUrl) {
+        this.dbUrl = dbUrl;
+        try {
+            Class.forName("org.sqlite.JDBC");
+        } catch (ClassNotFoundException e) {
+            LOGGER.log(Level.SEVERE, "SQLite JDBC driver not found", e);
+        }
         initializeSchema();
     }
 
@@ -67,42 +73,43 @@ public class MetricsStore {
     }
 
     private Connection getConnection() throws SQLException {
-        return dataSource.getConnection();
+        Connection conn = DriverManager.getConnection(dbUrl);
+        try (Statement stmt = conn.createStatement()) {
+            stmt.execute("PRAGMA journal_mode=WAL");
+            stmt.execute("PRAGMA busy_timeout=5000");
+        }
+        return conn;
     }
 
     private void initializeSchema() {
         try (Connection conn = getConnection(); Statement stmt = conn.createStatement()) {
             stmt.execute("CREATE TABLE IF NOT EXISTS builds ("
-                    + "id BIGINT AUTO_INCREMENT PRIMARY KEY,"
-                    + "job_name VARCHAR(500) NOT NULL,"
-                    + "build_number INT NOT NULL,"
-                    + "timestamp BIGINT NOT NULL,"
-                    + "duration_ms BIGINT NOT NULL,"
-                    + "result VARCHAR(20) NOT NULL,"
-                    + "trigger_type VARCHAR(50),"
-                    + "branch VARCHAR(200),"
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "job_name TEXT NOT NULL,"
+                    + "build_number INTEGER NOT NULL,"
+                    + "timestamp INTEGER NOT NULL,"
+                    + "duration_ms INTEGER NOT NULL,"
+                    + "result TEXT NOT NULL,"
+                    + "trigger_type TEXT,"
+                    + "branch TEXT,"
                     + "UNIQUE(job_name, build_number)"
                     + ")");
 
-            try {
-                stmt.execute("ALTER TABLE builds ADD COLUMN IF NOT EXISTS branch VARCHAR(200)");
-            } catch (SQLException ignored) { }
-
             stmt.execute("CREATE TABLE IF NOT EXISTS stages ("
-                    + "id BIGINT AUTO_INCREMENT PRIMARY KEY,"
-                    + "build_id BIGINT NOT NULL,"
-                    + "stage_name VARCHAR(500) NOT NULL,"
-                    + "duration_ms BIGINT NOT NULL,"
-                    + "result VARCHAR(20) NOT NULL,"
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "build_id INTEGER NOT NULL,"
+                    + "stage_name TEXT NOT NULL,"
+                    + "duration_ms INTEGER NOT NULL,"
+                    + "result TEXT NOT NULL,"
                     + "FOREIGN KEY (build_id) REFERENCES builds(id)"
                     + ")");
 
             stmt.execute("CREATE TABLE IF NOT EXISTS commits ("
-                    + "id BIGINT AUTO_INCREMENT PRIMARY KEY,"
-                    + "build_id BIGINT NOT NULL,"
-                    + "commit_sha VARCHAR(40) NOT NULL,"
-                    + "author VARCHAR(200),"
-                    + "timestamp BIGINT NOT NULL,"
+                    + "id INTEGER PRIMARY KEY AUTOINCREMENT,"
+                    + "build_id INTEGER NOT NULL,"
+                    + "commit_sha TEXT NOT NULL,"
+                    + "author TEXT,"
+                    + "timestamp INTEGER NOT NULL,"
                     + "FOREIGN KEY (build_id) REFERENCES builds(id)"
                     + ")");
 
@@ -122,10 +129,10 @@ public class MetricsStore {
 
     public long insertBuild(String jobName, int buildNumber, long timestamp,
                             long durationMs, String result, String triggerType, String branch) {
-        String sql = "MERGE INTO builds (job_name, build_number, timestamp, duration_ms, result, trigger_type, branch) "
-                + "KEY (job_name, build_number) VALUES (?, ?, ?, ?, ?, ?, ?)";
+        String sql = "INSERT OR REPLACE INTO builds (job_name, build_number, timestamp, duration_ms, result, trigger_type, branch) "
+                + "VALUES (?, ?, ?, ?, ?, ?, ?)";
         try (Connection conn = getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setString(1, jobName);
             ps.setInt(2, buildNumber);
             ps.setLong(3, timestamp);
@@ -273,16 +280,14 @@ public class MetricsStore {
             return executeCount("SELECT COUNT(*) FROM builds WHERE timestamp BETWEEN ? AND ? AND result = 'SUCCESS'",
                     fromMs, toMs);
         }
-        return executeCount("SELECT COUNT(*) FROM builds WHERE timestamp BETWEEN ? AND ? AND result = 'SUCCESS' AND job_name REGEXP ?",
-                fromMs, toMs, jobPattern);
+        return executeCountWithGlob(fromMs, toMs, jobPattern, "AND result = 'SUCCESS'");
     }
 
     public long countTotalBuilds(long fromMs, long toMs, String jobPattern) {
         if (".*".equals(jobPattern) || jobPattern == null) {
             return executeCount("SELECT COUNT(*) FROM builds WHERE timestamp BETWEEN ? AND ?", fromMs, toMs);
         }
-        return executeCount("SELECT COUNT(*) FROM builds WHERE timestamp BETWEEN ? AND ? AND job_name REGEXP ?",
-                fromMs, toMs, jobPattern);
+        return executeCountWithGlob(fromMs, toMs, jobPattern, "");
     }
 
     public long countFailedBuilds(long fromMs, long toMs, String jobPattern) {
@@ -290,8 +295,7 @@ public class MetricsStore {
             return executeCount("SELECT COUNT(*) FROM builds WHERE timestamp BETWEEN ? AND ? AND result = 'FAILURE'",
                     fromMs, toMs);
         }
-        return executeCount("SELECT COUNT(*) FROM builds WHERE timestamp BETWEEN ? AND ? AND result = 'FAILURE' AND job_name REGEXP ?",
-                fromMs, toMs, jobPattern);
+        return executeCountWithGlob(fromMs, toMs, jobPattern, "AND result = 'FAILURE'");
     }
 
     public double avgLeadTimeMs(long fromMs, long toMs, String jobPattern) {
@@ -299,12 +303,14 @@ public class MetricsStore {
                 + "INNER JOIN (SELECT build_id, MIN(timestamp) as min_commit FROM commits GROUP BY build_id) c "
                 + "ON b.id = c.build_id "
                 + "WHERE b.timestamp BETWEEN ? AND ? AND b.result = 'SUCCESS' AND c.min_commit > 0";
-        String sql = (".*".equals(jobPattern) || jobPattern == null) ? baseSql : baseSql + " AND b.job_name REGEXP ?";
+        String sql = (".*".equals(jobPattern) || jobPattern == null) ? baseSql : baseSql + " AND b.job_name GLOB ?";
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, fromMs);
             ps.setLong(2, toMs);
-            if (!".*".equals(jobPattern) && jobPattern != null) ps.setString(3, jobPattern);
+            if (!".*".equals(jobPattern) && jobPattern != null) {
+                ps.setString(3, regexToGlob(jobPattern));
+            }
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getDouble(1);
             }
@@ -393,19 +399,32 @@ public class MetricsStore {
         return 0;
     }
 
-    private long executeCount(String sql, long fromMs, long toMs, String pattern) {
+    private long executeCountWithGlob(long fromMs, long toMs, String jobPattern, String extraWhere) {
+        String sql = "SELECT COUNT(*) FROM builds WHERE timestamp BETWEEN ? AND ? AND job_name GLOB ? " + extraWhere;
         try (Connection conn = getConnection();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setLong(1, fromMs);
             ps.setLong(2, toMs);
-            ps.setString(3, pattern);
+            ps.setString(3, regexToGlob(jobPattern));
             try (ResultSet rs = ps.executeQuery()) {
                 if (rs.next()) return rs.getLong(1);
             }
         } catch (SQLException e) {
-            LOGGER.log(Level.FINE, "Count query failed", e);
+            LOGGER.log(Level.FINE, "Count query with glob failed", e);
         }
         return 0;
+    }
+
+    /**
+     * Convert simple regex patterns to SQLite GLOB patterns.
+     * Handles common cases: .* -> *, .+ -> ?*, literal strings.
+     */
+    static String regexToGlob(String regex) {
+        if (regex == null || ".*".equals(regex)) return "*";
+        return regex
+                .replace(".*", "*")
+                .replace(".+", "?*")
+                .replace("\\.", ".");
     }
 
     // === Maintenance ===

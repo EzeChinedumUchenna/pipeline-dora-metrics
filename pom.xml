@@ -43,7 +43,7 @@
         <hpi.strictBundledArtifacts>true</hpi.strictBundledArtifacts>
         <ban-deprecated-stapler.skip>false</ban-deprecated-stapler.skip>
         <ban-commons-lang-2.skip>false</ban-commons-lang-2.skip>
-        <hpi.bundledArtifacts>h2</hpi.bundledArtifacts>
+        <hpi.bundledArtifacts>sqlite-jdbc</hpi.bundledArtifacts>
     </properties>
 
     <build>
@@ -73,11 +73,11 @@
     </dependencyManagement>
 
     <dependencies>
-        <!-- H2 embedded database (TODO: migrate to database-api plugin when h2-api is updated) -->
+        <!-- SQLite embedded database (no sqlite-api plugin exists, so no classloading conflicts) -->
         <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.2.224</version>
+            <groupId>org.xerial</groupId>
+            <artifactId>sqlite-jdbc</artifactId>
+            <version>3.53.0.0</version>
         </dependency>
 
         <!-- Pipeline API for stage-level data -->
