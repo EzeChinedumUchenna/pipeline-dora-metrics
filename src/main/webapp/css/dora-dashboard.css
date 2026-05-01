@@ -27,6 +27,9 @@
 .dora-tables { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
 .dora-tables .jenkins-table { margin-bottom: 0; }
 
+/* API docs */
+.dora-api-docs { font-size: 12px; line-height: 1.6; padding: 12px 16px; border-radius: 6px; background: var(--pre-background, #f6f8fa); overflow-x: auto; margin: 0; }
+
 /* Per-job metrics page */
 .job-dora { max-width: 1200px; margin: 0 auto; padding: 16px; }
 .job-dora .subtitle { color: var(--text-color-secondary, #656d76); font-size: 14px; margin-bottom: 16px; }

@@ -158,12 +158,10 @@
             <div class="dora-section">
                 <div class="jenkins-section__title dora-toggle">REST API <span class="dora-chevron">▾</span></div>
                 <div class="dora-section-body collapsed" style="max-height:0">
-                    <p>
-                        <code>GET /dora-api/overview?days=30</code> All 4 DORA metrics<br/>
-                        <code>GET /dora-api/pipelines?days=30&amp;limit=10</code> Pipeline rankings<br/>
-                        <code>GET /dora-api/trends?days=90&amp;job=my-pipeline</code> Time-series data<br/>
-                        <code>GET /dora-api/export?days=90&amp;format=csv</code> CSV/JSON export
-                    </p>
+                    <pre class="dora-api-docs">GET /dora-api/overview?days=30           All 4 DORA metrics
+GET /dora-api/pipelines?days=30&amp;limit=10  Pipeline rankings
+GET /dora-api/trends?days=90&amp;job=my-pipe  Time-series data
+GET /dora-api/export?days=90&amp;format=csv   CSV/JSON export</pre>
                 </div>
             </div>
         </div>
