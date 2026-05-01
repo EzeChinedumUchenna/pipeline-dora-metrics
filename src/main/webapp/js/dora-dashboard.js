@@ -2,15 +2,15 @@ var currentDays = 30;
 
 function toggleSection(header) {
     var body = header.nextElementSibling;
-    var toggle = header.querySelector('.dora-section-toggle');
+    var chevron = header.querySelector('.dora-chevron');
     if (body.classList.contains('collapsed')) {
         body.classList.remove('collapsed');
         body.style.maxHeight = body.scrollHeight + 'px';
-        toggle.classList.remove('collapsed');
+        if (chevron) chevron.classList.remove('collapsed');
     } else {
         body.classList.add('collapsed');
         body.style.maxHeight = '0';
-        toggle.classList.add('collapsed');
+        if (chevron) chevron.classList.add('collapsed');
     }
 }
 

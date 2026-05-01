@@ -16,6 +16,8 @@
 .dora-section-body { overflow: hidden; transition: max-height 0.3s ease; }
 .dora-section-body.collapsed { max-height: 0 !important; }
 .dora-toggle { cursor: pointer; }
+.dora-chevron { display: inline-block; transition: transform 0.2s; font-size: 14px; color: var(--text-color-secondary, #656d76); }
+.dora-chevron.collapsed { transform: rotate(-90deg); }
 
 /* Chart grid */
 .dora-chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; margin-bottom: 16px; }

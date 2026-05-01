@@ -118,4 +118,15 @@ public class DoraDashboardActionTest {
         List<DomElement> sections = page.getByXPath("//*[contains(@class, 'dora-toggle')]");
         assertTrue("Dashboard should have collapsible sections", sections.size() >= 3);
     }
+
+    @Test
+    public void collapsibleSectionsHaveChevrons() throws Exception {
+        HtmlPage page = noJsClient().goTo("dora-metrics");
+        List<DomElement> toggles = page.getByXPath("//*[contains(@class, 'dora-toggle')]");
+        for (DomElement toggle : toggles) {
+            List<DomElement> chevrons = toggle.getByXPath(".//span[contains(@class, 'dora-chevron')]");
+            assertFalse("Each toggle section should have a chevron: " + toggle.getTextContent().trim(),
+                    chevrons.isEmpty());
+        }
+    }
 }

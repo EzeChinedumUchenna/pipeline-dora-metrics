@@ -59,7 +59,7 @@
 
             <!-- Trends -->
             <div class="dora-section">
-                <div class="jenkins-section__title dora-toggle">Trends</div>
+                <div class="jenkins-section__title dora-toggle">Trends <span class="dora-chevron">▾</span></div>
                 <div class="dora-section-body">
                     <div class="dora-chart-grid">
                         <l:card title="Build Volume and Success Rate">
@@ -74,7 +74,7 @@
 
             <!-- Pipeline Rankings -->
             <div class="dora-section">
-                <div class="jenkins-section__title dora-toggle">Pipeline Rankings</div>
+                <div class="jenkins-section__title dora-toggle">Pipeline Rankings <span class="dora-chevron">▾</span></div>
                 <div class="dora-section-body">
                     <div class="dora-tables">
                         <l:card title="Slowest Pipelines">
@@ -126,7 +126,7 @@
 
             <!-- Stage Analytics -->
             <div class="dora-section">
-                <div class="jenkins-section__title dora-toggle">Stage Analytics</div>
+                <div class="jenkins-section__title dora-toggle">Stage Analytics <span class="dora-chevron">▾</span></div>
                 <div class="dora-section-body">
                     <div class="dora-tables">
                         <l:card title="Slowest Stages">
@@ -156,7 +156,7 @@
 
             <!-- API Docs -->
             <div class="dora-section">
-                <div class="jenkins-section__title dora-toggle">REST API</div>
+                <div class="jenkins-section__title dora-toggle">REST API <span class="dora-chevron">▾</span></div>
                 <div class="dora-section-body collapsed" style="max-height:0">
                     <p>
                         <code>GET /dora-api/overview?days=30</code> All 4 DORA metrics<br/>
