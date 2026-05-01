@@ -42,8 +42,7 @@ public class MetricsMaintenanceTask extends AsyncPeriodicWork {
 
             // Export if enabled and interval has elapsed
             if (config.isExportEnabled()) {
-                int intervalHours = config.getExportIntervalHours();
-                if (intervalHours <= 0) intervalHours = 24;
+                int intervalHours = Math.max(1, config.getExportIntervalHours());
                 long intervalMs = (long) intervalHours * HOUR_MS;
 
                 if (System.currentTimeMillis() - lastExportTime >= intervalMs) {

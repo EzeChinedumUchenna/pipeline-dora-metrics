@@ -1,8 +1,10 @@
 package io.jenkins.plugins.dorametrics;
 
 import hudson.Extension;
+import hudson.util.FormValidation;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
+import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest2;
 
 import java.util.logging.Level;
@@ -72,27 +74,27 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
         this.productionFolders = json.optString("productionFolders", "");
         this.productionJobLabel = json.optString("productionJobLabel", "dora-production");
         this.trackAllBranches = json.optBoolean("trackAllBranches", true);
-        this.retentionDays = json.optInt("retentionDays", 365);
-        this.dashboardTopN = json.optInt("dashboardTopN", 10);
+        this.retentionDays = Math.max(1, json.optInt("retentionDays", 365));
+        this.dashboardTopN = Math.max(1, json.optInt("dashboardTopN", 10));
 
         this.exportEnabled = json.optBoolean("exportEnabled", false);
-        this.exportIntervalHours = json.optInt("exportIntervalHours", 24);
+        this.exportIntervalHours = Math.max(1, json.optInt("exportIntervalHours", 24));
         if (json.has("exportStorage")) {
             this.exportStorage = req.bindJSON(io.jenkins.plugins.dorametrics.export.ExportStorageConfig.class, json.getJSONObject("exportStorage"));
         }
 
-        this.dfEliteThreshold = json.optDouble("dfEliteThreshold", 1.0);
-        this.dfHighThreshold = json.optDouble("dfHighThreshold", 0.142);
-        this.dfMediumThreshold = json.optDouble("dfMediumThreshold", 0.033);
-        this.ltEliteSeconds = json.optLong("ltEliteSeconds", 3600);
-        this.ltHighSeconds = json.optLong("ltHighSeconds", 86400);
-        this.ltMediumSeconds = json.optLong("ltMediumSeconds", 604800);
-        this.mttrEliteSeconds = json.optLong("mttrEliteSeconds", 3600);
-        this.mttrHighSeconds = json.optLong("mttrHighSeconds", 86400);
-        this.mttrMediumSeconds = json.optLong("mttrMediumSeconds", 604800);
-        this.cfrElitePercent = json.optDouble("cfrElitePercent", 5.0);
-        this.cfrHighPercent = json.optDouble("cfrHighPercent", 10.0);
-        this.cfrMediumPercent = json.optDouble("cfrMediumPercent", 15.0);
+        this.dfEliteThreshold = Math.max(0, json.optDouble("dfEliteThreshold", 1.0));
+        this.dfHighThreshold = Math.max(0, json.optDouble("dfHighThreshold", 0.142));
+        this.dfMediumThreshold = Math.max(0, json.optDouble("dfMediumThreshold", 0.033));
+        this.ltEliteSeconds = Math.max(0, json.optLong("ltEliteSeconds", 3600));
+        this.ltHighSeconds = Math.max(0, json.optLong("ltHighSeconds", 86400));
+        this.ltMediumSeconds = Math.max(0, json.optLong("ltMediumSeconds", 604800));
+        this.mttrEliteSeconds = Math.max(0, json.optLong("mttrEliteSeconds", 3600));
+        this.mttrHighSeconds = Math.max(0, json.optLong("mttrHighSeconds", 86400));
+        this.mttrMediumSeconds = Math.max(0, json.optLong("mttrMediumSeconds", 604800));
+        this.cfrElitePercent = Math.max(0, Math.min(100, json.optDouble("cfrElitePercent", 5.0)));
+        this.cfrHighPercent = Math.max(0, Math.min(100, json.optDouble("cfrHighPercent", 10.0)));
+        this.cfrMediumPercent = Math.max(0, Math.min(100, json.optDouble("cfrMediumPercent", 15.0)));
 
         compilePatterns();
         save();
@@ -122,6 +124,54 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
                     ? Pattern.compile(excludedJobPattern) : null;
         } catch (PatternSyntaxException e) {
             compiledExcludedPattern = null;
+        }
+    }
+
+    // --- Form validation ---
+
+    public FormValidation doCheckRetentionDays(@QueryParameter String value) {
+        return validatePositiveInt(value, "Retention days");
+    }
+
+    public FormValidation doCheckDashboardTopN(@QueryParameter String value) {
+        return validatePositiveInt(value, "Dashboard Top N");
+    }
+
+    public FormValidation doCheckExportIntervalHours(@QueryParameter String value) {
+        return validatePositiveInt(value, "Export interval");
+    }
+
+    public FormValidation doCheckCfrElitePercent(@QueryParameter String value) {
+        return validatePercent(value);
+    }
+
+    public FormValidation doCheckCfrHighPercent(@QueryParameter String value) {
+        return validatePercent(value);
+    }
+
+    public FormValidation doCheckCfrMediumPercent(@QueryParameter String value) {
+        return validatePercent(value);
+    }
+
+    private static FormValidation validatePositiveInt(String value, String fieldName) {
+        if (value == null || value.isEmpty()) return FormValidation.ok();
+        try {
+            int v = Integer.parseInt(value);
+            if (v < 1) return FormValidation.error(fieldName + " must be at least 1");
+            return FormValidation.ok();
+        } catch (NumberFormatException e) {
+            return FormValidation.error(fieldName + " must be a whole number");
+        }
+    }
+
+    private static FormValidation validatePercent(String value) {
+        if (value == null || value.isEmpty()) return FormValidation.ok();
+        try {
+            double v = Double.parseDouble(value);
+            if (v < 0 || v > 100) return FormValidation.error("Must be between 0 and 100");
+            return FormValidation.ok();
+        } catch (NumberFormatException e) {
+            return FormValidation.error("Must be a number");
         }
     }
 

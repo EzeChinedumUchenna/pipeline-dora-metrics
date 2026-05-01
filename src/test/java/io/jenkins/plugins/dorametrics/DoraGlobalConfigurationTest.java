@@ -1,5 +1,6 @@
 package io.jenkins.plugins.dorametrics;
 
+import hudson.util.FormValidation;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -107,5 +108,40 @@ public class DoraGlobalConfigurationTest {
         config.setDfEliteThreshold(10.0);
         assertEquals(10.0, config.getDfEliteThreshold(), 0.001);
         config.setDfEliteThreshold(1.0); // reset
+    }
+
+    @Test
+    public void validateRetentionDaysRejectsInvalid() {
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckRetentionDays("0").kind);
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckRetentionDays("-5").kind);
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckRetentionDays("abc").kind);
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckRetentionDays("1.5").kind);
+        assertEquals(FormValidation.Kind.OK, config.doCheckRetentionDays("1").kind);
+        assertEquals(FormValidation.Kind.OK, config.doCheckRetentionDays("365").kind);
+    }
+
+    @Test
+    public void validateDashboardTopNRejectsInvalid() {
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckDashboardTopN("0").kind);
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckDashboardTopN("-1").kind);
+        assertEquals(FormValidation.Kind.OK, config.doCheckDashboardTopN("10").kind);
+    }
+
+    @Test
+    public void validateExportIntervalRejectsInvalid() {
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckExportIntervalHours("0").kind);
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckExportIntervalHours("0.5").kind);
+        assertEquals(FormValidation.Kind.OK, config.doCheckExportIntervalHours("1").kind);
+        assertEquals(FormValidation.Kind.OK, config.doCheckExportIntervalHours("24").kind);
+    }
+
+    @Test
+    public void validateCfrPercentRejectsOutOfRange() {
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckCfrElitePercent("-1").kind);
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckCfrElitePercent("101").kind);
+        assertEquals(FormValidation.Kind.ERROR, config.doCheckCfrElitePercent("abc").kind);
+        assertEquals(FormValidation.Kind.OK, config.doCheckCfrElitePercent("0").kind);
+        assertEquals(FormValidation.Kind.OK, config.doCheckCfrElitePercent("5").kind);
+        assertEquals(FormValidation.Kind.OK, config.doCheckCfrElitePercent("100").kind);
     }
 }
