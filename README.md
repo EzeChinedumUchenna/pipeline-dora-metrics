@@ -107,7 +107,7 @@ The plugin file will be at `target/pipeline-dora-metrics.hpi`.
 
 ## How It Works
 
-The plugin uses a `RunListener` to automatically capture build data after every pipeline completes. Data is stored in an embedded H2 database at `JENKINS_HOME/pipeline-dora-metrics/metrics`. No external database setup required.
+The plugin uses a `RunListener` to automatically capture build data after every pipeline completes. Data is stored in an embedded SQLite database at `JENKINS_HOME/pipeline-dora-metrics/metrics.db`. No external database setup required.
 
 **Data captured per build:**
 - Job name, build number, timestamp, duration, result
@@ -148,7 +148,7 @@ io.jenkins.plugins.dorametrics/
 ├── rankings/
 │   └── PipelineRanker          # Pipeline and stage rankings (SQL aggregates)
 ├── store/
-│   └── MetricsStore            # H2 database with connection reuse
+│   └── MetricsStore            # SQLite database
 ├── ui/
 │   ├── DoraApiAction           # REST API at /dora-api/ (auth-protected)
 │   ├── DoraDashboardAction     # Dashboard UI at /dora-metrics/

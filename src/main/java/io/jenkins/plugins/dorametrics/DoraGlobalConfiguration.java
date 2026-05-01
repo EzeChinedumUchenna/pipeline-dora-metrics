@@ -1,7 +1,6 @@
 package io.jenkins.plugins.dorametrics;
 
 import hudson.Extension;
-import hudson.util.Secret;
 import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.StaplerRequest2;
@@ -29,23 +28,23 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
     private int dashboardTopN = 10;
 
     // External storage export
-    private String exportStorageType = "LOCAL";
+    private String exportStorageType = "S3";
     private String exportEndpoint = "";
-    private Secret exportAccessKey;
-    private Secret exportSecretKey;
+    private String exportCredentialsId = "";
     private String exportBucket = "";
     private boolean exportEnabled = false;
+    private int exportIntervalHours = 24;
 
     // DORA band thresholds
     private double dfEliteThreshold = 1.0;
     private double dfHighThreshold = 0.142;
     private double dfMediumThreshold = 0.033;
-    private double ltEliteMs = 3600000;
-    private double ltHighMs = 86400000;
-    private double ltMediumMs = 604800000;
-    private double mttrEliteMs = 3600000;
-    private double mttrHighMs = 86400000;
-    private double mttrMediumMs = 604800000;
+    private long ltEliteSeconds = 3600;      // 1 hour
+    private long ltHighSeconds = 86400;      // 1 day
+    private long ltMediumSeconds = 604800;   // 1 week
+    private long mttrEliteSeconds = 3600;
+    private long mttrHighSeconds = 86400;
+    private long mttrMediumSeconds = 604800;
     private double cfrElitePercent = 5.0;
     private double cfrHighPercent = 10.0;
     private double cfrMediumPercent = 15.0;
@@ -74,22 +73,22 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
         this.retentionDays = json.optInt("retentionDays", 365);
         this.dashboardTopN = json.optInt("dashboardTopN", 10);
 
-        this.exportStorageType = json.optString("exportStorageType", "LOCAL");
+        this.exportStorageType = json.optString("exportStorageType", "S3");
         this.exportEndpoint = json.optString("exportEndpoint", "");
-        this.exportAccessKey = Secret.fromString(json.optString("exportAccessKey", ""));
-        this.exportSecretKey = Secret.fromString(json.optString("exportSecretKey", ""));
+        this.exportCredentialsId = json.optString("exportCredentialsId", "");
         this.exportBucket = json.optString("exportBucket", "");
         this.exportEnabled = json.optBoolean("exportEnabled", false);
+        this.exportIntervalHours = json.optInt("exportIntervalHours", 24);
 
         this.dfEliteThreshold = json.optDouble("dfEliteThreshold", 1.0);
         this.dfHighThreshold = json.optDouble("dfHighThreshold", 0.142);
         this.dfMediumThreshold = json.optDouble("dfMediumThreshold", 0.033);
-        this.ltEliteMs = json.optDouble("ltEliteMs", 3600000);
-        this.ltHighMs = json.optDouble("ltHighMs", 86400000);
-        this.ltMediumMs = json.optDouble("ltMediumMs", 604800000);
-        this.mttrEliteMs = json.optDouble("mttrEliteMs", 3600000);
-        this.mttrHighMs = json.optDouble("mttrHighMs", 86400000);
-        this.mttrMediumMs = json.optDouble("mttrMediumMs", 604800000);
+        this.ltEliteSeconds = json.optLong("ltEliteSeconds", 3600);
+        this.ltHighSeconds = json.optLong("ltHighSeconds", 86400);
+        this.ltMediumSeconds = json.optLong("ltMediumSeconds", 604800);
+        this.mttrEliteSeconds = json.optLong("mttrEliteSeconds", 3600);
+        this.mttrHighSeconds = json.optLong("mttrHighSeconds", 86400);
+        this.mttrMediumSeconds = json.optLong("mttrMediumSeconds", 604800);
         this.cfrElitePercent = json.optDouble("cfrElitePercent", 5.0);
         this.cfrHighPercent = json.optDouble("cfrHighPercent", 10.0);
         this.cfrMediumPercent = json.optDouble("cfrMediumPercent", 15.0);
@@ -192,11 +191,8 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
     public String getExportEndpoint() { return exportEndpoint; }
     public void setExportEndpoint(String v) { this.exportEndpoint = v; }
 
-    public Secret getExportAccessKey() { return exportAccessKey; }
-    public void setExportAccessKey(Secret v) { this.exportAccessKey = v; }
-
-    public Secret getExportSecretKey() { return exportSecretKey; }
-    public void setExportSecretKey(Secret v) { this.exportSecretKey = v; }
+    public String getExportCredentialsId() { return exportCredentialsId; }
+    public void setExportCredentialsId(String v) { this.exportCredentialsId = v; }
 
     public String getExportBucket() { return exportBucket; }
     public void setExportBucket(String v) { this.exportBucket = v; }
@@ -204,24 +200,27 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
     public boolean isExportEnabled() { return exportEnabled; }
     public void setExportEnabled(boolean v) { this.exportEnabled = v; }
 
+    public int getExportIntervalHours() { return exportIntervalHours; }
+    public void setExportIntervalHours(int v) { this.exportIntervalHours = v; }
+
     public double getDfEliteThreshold() { return dfEliteThreshold; }
     public void setDfEliteThreshold(double v) { this.dfEliteThreshold = v; }
     public double getDfHighThreshold() { return dfHighThreshold; }
     public void setDfHighThreshold(double v) { this.dfHighThreshold = v; }
     public double getDfMediumThreshold() { return dfMediumThreshold; }
     public void setDfMediumThreshold(double v) { this.dfMediumThreshold = v; }
-    public double getLtEliteMs() { return ltEliteMs; }
-    public void setLtEliteMs(double v) { this.ltEliteMs = v; }
-    public double getLtHighMs() { return ltHighMs; }
-    public void setLtHighMs(double v) { this.ltHighMs = v; }
-    public double getLtMediumMs() { return ltMediumMs; }
-    public void setLtMediumMs(double v) { this.ltMediumMs = v; }
-    public double getMttrEliteMs() { return mttrEliteMs; }
-    public void setMttrEliteMs(double v) { this.mttrEliteMs = v; }
-    public double getMttrHighMs() { return mttrHighMs; }
-    public void setMttrHighMs(double v) { this.mttrHighMs = v; }
-    public double getMttrMediumMs() { return mttrMediumMs; }
-    public void setMttrMediumMs(double v) { this.mttrMediumMs = v; }
+    public long getLtEliteSeconds() { return ltEliteSeconds; }
+    public void setLtEliteSeconds(long v) { this.ltEliteSeconds = v; }
+    public long getLtHighSeconds() { return ltHighSeconds; }
+    public void setLtHighSeconds(long v) { this.ltHighSeconds = v; }
+    public long getLtMediumSeconds() { return ltMediumSeconds; }
+    public void setLtMediumSeconds(long v) { this.ltMediumSeconds = v; }
+    public long getMttrEliteSeconds() { return mttrEliteSeconds; }
+    public void setMttrEliteSeconds(long v) { this.mttrEliteSeconds = v; }
+    public long getMttrHighSeconds() { return mttrHighSeconds; }
+    public void setMttrHighSeconds(long v) { this.mttrHighSeconds = v; }
+    public long getMttrMediumSeconds() { return mttrMediumSeconds; }
+    public void setMttrMediumSeconds(long v) { this.mttrMediumSeconds = v; }
     public double getCfrElitePercent() { return cfrElitePercent; }
     public void setCfrElitePercent(double v) { this.cfrElitePercent = v; }
     public double getCfrHighPercent() { return cfrHighPercent; }

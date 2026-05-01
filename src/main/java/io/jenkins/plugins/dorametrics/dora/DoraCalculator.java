@@ -77,9 +77,9 @@ public class DoraCalculator {
             return new DoraMetric("Lead Time for Changes", "N/A", DoraBand.LOW, 0);
         }
 
-        double ltElite = config != null ? config.getLtEliteMs() : 3600_000;
-        double ltHigh = config != null ? config.getLtHighMs() : 86400_000;
-        double ltMedium = config != null ? config.getLtMediumMs() : 604800_000;
+        double ltElite = config != null ? config.getLtEliteSeconds() * 1000 : 3600L * 1000;
+        double ltHigh = config != null ? config.getLtHighSeconds() * 1000 : 86400L * 1000;
+        double ltMedium = config != null ? config.getLtMediumSeconds() * 1000 : 604800L * 1000;
 
         DoraBand band = avgMs < ltElite ? DoraBand.ELITE
                 : avgMs < ltHigh ? DoraBand.HIGH
@@ -125,9 +125,9 @@ public class DoraCalculator {
 
         double avgMs = restoreTimes.stream().mapToLong(Long::longValue).average().orElse(0);
 
-        double mttrElite = config != null ? config.getMttrEliteMs() : 3600_000;
-        double mttrHigh = config != null ? config.getMttrHighMs() : 86400_000;
-        double mttrMedium = config != null ? config.getMttrMediumMs() : 604800_000;
+        double mttrElite = config != null ? config.getMttrEliteSeconds() * 1000 : 3600L * 1000;
+        double mttrHigh = config != null ? config.getMttrHighSeconds() * 1000 : 86400L * 1000;
+        double mttrMedium = config != null ? config.getMttrMediumSeconds() * 1000 : 604800L * 1000;
 
         DoraBand band = avgMs < mttrElite ? DoraBand.ELITE
                 : avgMs < mttrHigh ? DoraBand.HIGH

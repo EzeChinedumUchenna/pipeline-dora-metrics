@@ -32,7 +32,7 @@ public class JobMetricsAction implements Action {
     }
 
     @Override
-    public String getIconFileName() { return "graph.png"; }
+    public String getIconFileName() { return "symbol-bar-chart-outline plugin-ionicons-api"; }
 
     @Override
     public String getDisplayName() { return "DORA Metrics"; }

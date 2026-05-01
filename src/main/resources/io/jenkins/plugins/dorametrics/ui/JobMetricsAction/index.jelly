@@ -1,69 +1,66 @@
 <?jelly escape-by-default='true'?>
 <j:jelly xmlns:j="jelly:core" xmlns:l="/lib/layout" xmlns:st="jelly:stapler">
-<l:layout title="DORA Metrics - ${it.jobName}" norefresh="true">
+<l:layout title="DORA Metrics - ${it.jobName}">
     <l:main-panel>
         <link rel="stylesheet" href="${resURL}/plugin/pipeline-dora-metrics/css/dora-dashboard.css" type="text/css"/>
 
         <div class="job-dora">
-            <h1>DORA Metrics</h1>
+            <h2>DORA Metrics</h2>
             <div class="subtitle">${it.jobName} | Last 30 days</div>
 
-            <div class="job-stats">
-                <div class="job-stat">
-                    <div class="job-stat-value">${it.totalBuilds}</div>
-                    <div class="job-stat-label">Total Builds</div>
-                </div>
-                <div class="job-stat">
-                    <div class="job-stat-value">${it.successfulBuilds} / ${it.failedBuilds}</div>
-                    <div class="job-stat-label">Success / Failed</div>
-                </div>
-                <div class="job-stat">
-                    <div class="job-stat-value">${it.avgDurationFormatted}</div>
-                    <div class="job-stat-label">Avg Duration</div>
-                </div>
+            <div class="dora-cards">
+                <l:card title="Total Builds">
+                    <div class="dora-card-value">${it.totalBuilds}</div>
+                </l:card>
+                <l:card title="Success / Failed">
+                    <div class="dora-card-value">${it.successfulBuilds} / ${it.failedBuilds}</div>
+                </l:card>
+                <l:card title="Avg Duration">
+                    <div class="dora-card-value">${it.avgDurationFormatted}</div>
+                </l:card>
             </div>
 
             <div class="dora-cards">
                 <j:set var="df" value="${it.deploymentFrequency}"/>
-                <div class="dora-card">
-                    <div class="dora-card-label">Deploy Frequency</div>
+                <l:card title="Deploy Frequency">
                     <div class="dora-card-value">${df.displayValue}</div>
                     <span class="dora-card-band" style="background-color: ${df.band.color}">${df.band.label}</span>
-                </div>
+                </l:card>
 
                 <j:set var="leadTime" value="${it.leadTime}"/>
-                <div class="dora-card">
-                    <div class="dora-card-label">Lead Time</div>
+                <l:card title="Lead Time">
                     <div class="dora-card-value">${leadTime.displayValue}</div>
                     <span class="dora-card-band" style="background-color: ${leadTime.band.color}">${leadTime.band.label}</span>
-                </div>
+                </l:card>
 
                 <j:set var="mttr" value="${it.mttr}"/>
-                <div class="dora-card">
-                    <div class="dora-card-label">MTTR</div>
+                <l:card title="MTTR">
                     <div class="dora-card-value">${mttr.displayValue}</div>
                     <span class="dora-card-band" style="background-color: ${mttr.band.color}">${mttr.band.label}</span>
-                </div>
+                </l:card>
 
                 <j:set var="cfr" value="${it.changeFailureRate}"/>
-                <div class="dora-card">
-                    <div class="dora-card-label">Failure Rate</div>
+                <l:card title="Failure Rate">
                     <div class="dora-card-value">${cfr.displayValue}</div>
                     <span class="dora-card-band" style="background-color: ${cfr.band.color}">${cfr.band.label}</span>
-                </div>
+                </l:card>
             </div>
 
-            <h2>Stage Breakdown</h2>
-            <table class="stage-table">
-                <tr><th>#</th><th>Stage</th><th class="val-col">Avg Duration</th><th class="val-col">Runs</th></tr>
+            <h3>Stage Breakdown</h3>
+            <table class="jenkins-table">
+                <thead>
+                    <tr><th>#</th><th>Stage</th><th>Avg Duration</th><th>Runs</th></tr>
+                </thead>
+                <tbody>
                 <j:forEach var="s" items="${it.slowestStages}" varStatus="i">
                     <tr>
-                        <td class="rank-col">${i.index + 1}</td>
+                        <td>${i.index + 1}</td>
                         <td>${s.stageName}</td>
-                        <td class="val-col">${s.displayValue}</td>
-                        <td class="val-col">${s.occurrences}</td>
+                        <td>${s.displayValue}</td>
+                        <td>${s.occurrences}</td>
                     </tr>
                 </j:forEach>
+                </tbody>
             </table>
         </div>
     </l:main-panel>

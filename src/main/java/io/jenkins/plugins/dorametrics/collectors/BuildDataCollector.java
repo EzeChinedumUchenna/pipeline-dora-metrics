@@ -111,10 +111,9 @@ public class BuildDataCollector extends RunListener<Run<?, ?>> {
             Map<String, FlowNode> stageEnds = new LinkedHashMap<>();
 
             for (FlowNode node : allNodes) {
-                if (node instanceof StepStartNode) {
+                if (node instanceof StepStartNode startNode) {
                     LabelAction labelAction = node.getAction(LabelAction.class);
                     if (labelAction != null) {
-                        StepStartNode startNode = (StepStartNode) node;
                         if (node.getAction(org.jenkinsci.plugins.workflow.actions.ThreadNameAction.class) != null
                                 || startNode.getDescriptor() == null
                                 || "stage".equals(startNode.getDescriptor().getFunctionName())) {

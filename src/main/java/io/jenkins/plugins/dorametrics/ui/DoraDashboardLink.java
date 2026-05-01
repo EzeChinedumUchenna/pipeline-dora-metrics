@@ -11,7 +11,7 @@ public class DoraDashboardLink extends ManagementLink {
 
     @Override
     public String getIconFileName() {
-        return "graph.png";
+        return "symbol-bar-chart-outline plugin-ionicons-api";
     }
 
     @Override
