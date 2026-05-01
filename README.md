@@ -51,7 +51,7 @@ A Jenkins plugin that tracks all four DORA metrics, pipeline analytics, rankings
 - Branch filtering (main/master or custom)
 - Customizable DORA band thresholds
 - Configurable data retention period
-- External storage export settings (S3, GCS, Azure, HTTP)
+- External storage export settings (S3-compatible, HTTP endpoint)
 
 **REST API**
 ```
@@ -145,10 +145,16 @@ io.jenkins.plugins.dorametrics/
 │   └── BuildDataCollector      # RunListener - captures builds, stages, commits
 ├── dora/
 │   └── DoraCalculator          # Computes all 4 DORA metrics (SQL-optimized)
+├── export/
+│   ├── ExportStorageConfig     # Describable base for storage backends
+│   ├── S3ExportConfig          # S3-compatible storage (AWS, B2, MinIO)
+│   └── HttpExportConfig        # HTTP endpoint export
 ├── rankings/
 │   └── PipelineRanker          # Pipeline and stage rankings (SQL aggregates)
 ├── store/
-│   └── MetricsStore            # SQLite database
+│   ├── MetricsStore            # SQLite database
+│   ├── MetricsExporter         # S3/HTTP export with AWS SigV4 signing
+│   └── MetricsMaintenanceTask  # Scheduled cleanup and export
 ├── ui/
 │   ├── DoraApiAction           # REST API at /dora-api/ (auth-protected)
 │   ├── DoraDashboardAction     # Dashboard UI at /dora-metrics/
@@ -156,7 +162,7 @@ io.jenkins.plugins.dorametrics/
 │   └── JobMetricsAction        # Per-job metrics tab
 ├── util/
 │   └── DurationFormatter       # Shared duration formatting
-└── DoraGlobalConfiguration     # Plugin settings (secrets encrypted)
+└── DoraGlobalConfiguration     # Plugin settings
 ```
 
 ## Security
@@ -170,7 +176,7 @@ io.jenkins.plugins.dorametrics/
 ## Roadmap
 
 **v1.1 (Planned)**
-- External storage export (AWS S3, GCS, Azure Blob, Backblaze B2) with proper SDK auth and IAM role support
+- Additional export backends (GCS, Azure Blob) and IAM role support for S3
 - Historical build import (backfill metrics from existing Jenkins build history)
 - Grafana dashboard template (JSON) that consumes the REST API
 
@@ -191,7 +197,7 @@ io.jenkins.plugins.dorametrics/
 1. Fork the repository
 2. Create a feature branch
 3. Write tests for new functionality
-4. Run `mvn test` (all 65 tests must pass)
+4. Run `mvn test` (all 82 tests must pass)
 5. Submit a pull request
 
 ## License
