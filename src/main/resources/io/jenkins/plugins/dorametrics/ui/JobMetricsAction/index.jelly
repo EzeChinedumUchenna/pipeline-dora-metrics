@@ -47,7 +47,7 @@
             </div>
 
             <h3>Stage Breakdown</h3>
-            <table class="jenkins-table">
+            <table class="jenkins-table jenkins-table--small">
                 <thead>
                     <tr><th>#</th><th>Stage</th><th>Avg Duration</th><th>Runs</th></tr>
                 </thead>

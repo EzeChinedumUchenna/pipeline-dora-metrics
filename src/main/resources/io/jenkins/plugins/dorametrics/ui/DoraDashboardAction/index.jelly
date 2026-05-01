@@ -79,7 +79,7 @@
                 <div class="dora-section-body">
                     <div class="dora-tables">
                         <l:card title="Slowest Pipelines">
-                            <table class="jenkins-table">
+                            <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Pipeline</th><th>Avg Duration</th><th>Builds</th></tr></thead>
                                 <tbody>
                                 <j:forEach var="p" items="${it.slowestPipelines}" varStatus="i">
@@ -90,7 +90,7 @@
                         </l:card>
 
                         <l:card title="Most Failing Pipelines">
-                            <table class="jenkins-table">
+                            <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Pipeline</th><th>Failure Rate</th><th>Builds</th></tr></thead>
                                 <tbody>
                                 <j:forEach var="p" items="${it.mostFailingPipelines}" varStatus="i">
@@ -101,7 +101,7 @@
                         </l:card>
 
                         <l:card title="Most Improved (vs Previous Period)">
-                            <table class="jenkins-table">
+                            <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Pipeline</th><th>Change</th><th>Builds</th></tr></thead>
                                 <tbody>
                                 <j:forEach var="p" items="${it.mostImprovedPipelines}" varStatus="i">
@@ -112,7 +112,7 @@
                         </l:card>
 
                         <l:card title="Flakiest Pipelines">
-                            <table class="jenkins-table">
+                            <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Pipeline</th><th>Flaky Score</th><th>Builds</th></tr></thead>
                                 <tbody>
                                 <j:forEach var="p" items="${it.flakiestPipelines}" varStatus="i">
@@ -131,7 +131,7 @@
                 <div class="dora-section-body">
                     <div class="dora-tables">
                         <l:card title="Slowest Stages">
-                            <table class="jenkins-table">
+                            <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Stage</th><th>Avg Duration</th><th>Runs</th></tr></thead>
                                 <tbody>
                                 <j:forEach var="s" items="${it.slowestStages}" varStatus="i">
@@ -142,7 +142,7 @@
                         </l:card>
 
                         <l:card title="Most Failing Stages">
-                            <table class="jenkins-table">
+                            <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Stage</th><th>Failure Rate</th><th>Runs</th></tr></thead>
                                 <tbody>
                                 <j:forEach var="s" items="${it.mostFailingStages}" varStatus="i">
