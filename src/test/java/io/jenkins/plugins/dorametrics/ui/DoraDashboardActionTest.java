@@ -120,6 +120,18 @@ public class DoraDashboardActionTest {
     }
 
     @Test
+    public void tableLinksHaveLinkClass() throws Exception {
+        // Seed a build so the tables have rows with links
+        MetricsStore.getInstance().insertBuild("test-link-job", 1,
+                System.currentTimeMillis(), 5000, "SUCCESS", "USER", "main");
+        HtmlPage page = noJsClient().goTo("dora-metrics");
+        List<DomElement> tableLinks = page.getByXPath(
+                "//table[contains(@class, 'jenkins-table')]//a[contains(@class, 'jenkins-table__link')]");
+        // With one build, at least the slowest pipelines table should have a link
+        assertFalse("Table links should have jenkins-table__link class", tableLinks.isEmpty());
+    }
+
+    @Test
     public void collapsibleSectionsHaveChevrons() throws Exception {
         HtmlPage page = noJsClient().goTo("dora-metrics");
         List<DomElement> toggles = page.getByXPath("//*[contains(@class, 'dora-toggle')]");
