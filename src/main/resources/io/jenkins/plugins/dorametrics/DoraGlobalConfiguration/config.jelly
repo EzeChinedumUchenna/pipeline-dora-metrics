@@ -1,5 +1,5 @@
 <?jelly escape-by-default='true'?>
-<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form" xmlns:c="/lib/credentials">
+<j:jelly xmlns:j="jelly:core" xmlns:f="/lib/form">
     <f:section title="Pipeline DORA Metrics">
 
         <div class="jenkins-section__title">Job Filtering</div>
@@ -35,31 +35,12 @@
         </f:entry>
 
         <f:optionalBlock title="Enable Cloud Storage Export" field="exportEnabled" checked="${instance.exportEnabled}">
-            <f:entry title="Storage Type" field="exportStorageType">
-                <div class="jenkins-select">
-                    <select class="jenkins-select__input" name="exportStorageType">
-                        <f:option value="S3" selected="${instance.exportStorageType == 'S3'}">S3-Compatible (AWS S3, Backblaze B2, MinIO)</f:option>
-                        <f:option value="GCS" selected="${instance.exportStorageType == 'GCS'}">Google Cloud Storage</f:option>
-                        <f:option value="AZURE" selected="${instance.exportStorageType == 'AZURE'}">Azure Blob Storage</f:option>
-                        <f:option value="HTTP" selected="${instance.exportStorageType == 'HTTP'}">HTTP Endpoint</f:option>
-                    </select>
-                </div>
-            </f:entry>
-            <f:entry title="Endpoint URL" field="exportEndpoint"
-                     description="S3: https://s3.us-east-005.backblazeb2.com. Leave empty for AWS default.">
-                <f:textbox default=""/>
-            </f:entry>
-            <f:entry title="Bucket / Container" field="exportBucket">
-                <f:textbox default=""/>
-            </f:entry>
-            <f:entry title="Credentials" field="exportCredentialsId"
-                     description="Select credentials containing Access Key ID and Secret Key. Add via Manage Jenkins > Credentials.">
-                <c:select/>
-            </f:entry>
             <f:entry title="Export Interval (hours)" field="exportIntervalHours"
                      description="How often to push backup snapshots to cloud storage.">
                 <f:number default="24"/>
             </f:entry>
+            <f:dropdownDescriptorSelector title="Storage Type" field="exportStorage"
+                descriptors="${descriptor.getExportStorageDescriptors()}"/>
         </f:optionalBlock>
 
         <f:advanced title="DORA Band Thresholds">

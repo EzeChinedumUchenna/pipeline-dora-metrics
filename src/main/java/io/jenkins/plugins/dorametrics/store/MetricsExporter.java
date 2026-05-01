@@ -42,9 +42,6 @@ public class MetricsExporter {
         DoraGlobalConfiguration config = DoraGlobalConfiguration.get();
         if (config == null || !config.isExportEnabled()) return;
 
-        String storageType = config.getExportStorageType();
-        if ("LOCAL".equals(storageType)) return;
-
         try {
             MetricsStore store = MetricsStore.getInstance();
             long now = System.currentTimeMillis();
@@ -59,10 +56,13 @@ public class MetricsExporter {
             String jsonData = buildSnapshot(builds, store, now);
             String fileName = String.format("dora-metrics/%tF/snapshot.json", new Date(now));
 
-            String endpoint = config.getExportEndpoint();
-            String bucket = config.getExportBucket();
-            String credentialsId = config.getExportCredentialsId();
+            io.jenkins.plugins.dorametrics.export.ExportStorageConfig storageConfig = config.getExportStorage();
+            if (storageConfig == null) {
+                LOGGER.warning("Export enabled but no storage configured");
+                return;
+            }
 
+            String credentialsId = storageConfig.getCredentialsId();
             String accessKey = "";
             String secretKey = "";
             if (credentialsId != null && !credentialsId.isEmpty()) {
@@ -84,15 +84,15 @@ public class MetricsExporter {
                 }
             }
 
-            if ("HTTP".equals(storageType)) {
-                uploadHttp(endpoint, accessKey, jsonData);
-            } else {
-                // S3, GCS, AZURE all use S3-compatible API
+            if (storageConfig instanceof io.jenkins.plugins.dorametrics.export.HttpExportConfig httpConfig) {
+                uploadHttp(httpConfig.getUrl(), accessKey, jsonData);
+            } else if (storageConfig instanceof io.jenkins.plugins.dorametrics.export.S3ExportConfig s3Config) {
+                String endpoint = s3Config.getEndpoint();
                 String region = extractRegion(endpoint);
-                uploadS3Compatible(endpoint, bucket, fileName, jsonData, accessKey, secretKey, region);
+                uploadS3Compatible(endpoint, s3Config.getBucket(), fileName, jsonData, accessKey, secretKey, region);
             }
 
-            LOGGER.info("Exported daily snapshot: " + builds.size() + " builds to " + storageType);
+            LOGGER.info("Exported daily snapshot: " + builds.size() + " builds to " + storageConfig.getStorageType());
         } catch (Exception e) {
             LOGGER.log(Level.WARNING, "Failed to export metrics snapshot", e);
         }

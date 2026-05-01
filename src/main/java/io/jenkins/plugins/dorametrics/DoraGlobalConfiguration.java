@@ -28,12 +28,9 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
     private int dashboardTopN = 10;
 
     // External storage export
-    private String exportStorageType = "S3";
-    private String exportEndpoint = "";
-    private String exportCredentialsId = "";
-    private String exportBucket = "";
     private boolean exportEnabled = false;
     private int exportIntervalHours = 24;
+    private io.jenkins.plugins.dorametrics.export.ExportStorageConfig exportStorage;
 
     // DORA band thresholds
     private double dfEliteThreshold = 1.0;
@@ -62,6 +59,11 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
         return GlobalConfiguration.all().get(DoraGlobalConfiguration.class);
     }
 
+    @SuppressWarnings("unused") // called from Jelly
+    public java.util.List<hudson.model.Descriptor<io.jenkins.plugins.dorametrics.export.ExportStorageConfig>> getExportStorageDescriptors() {
+        return jenkins.model.Jenkins.get().getDescriptorList(io.jenkins.plugins.dorametrics.export.ExportStorageConfig.class);
+    }
+
     @Override
     public boolean configure(StaplerRequest2 req, JSONObject json) throws FormException {
         this.productionJobPattern = validateRegex(json.optString("productionJobPattern", ".*"), ".*");
@@ -73,12 +75,11 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
         this.retentionDays = json.optInt("retentionDays", 365);
         this.dashboardTopN = json.optInt("dashboardTopN", 10);
 
-        this.exportStorageType = json.optString("exportStorageType", "S3");
-        this.exportEndpoint = json.optString("exportEndpoint", "");
-        this.exportCredentialsId = json.optString("exportCredentialsId", "");
-        this.exportBucket = json.optString("exportBucket", "");
         this.exportEnabled = json.optBoolean("exportEnabled", false);
         this.exportIntervalHours = json.optInt("exportIntervalHours", 24);
+        if (json.has("exportStorage")) {
+            this.exportStorage = req.bindJSON(io.jenkins.plugins.dorametrics.export.ExportStorageConfig.class, json.getJSONObject("exportStorage"));
+        }
 
         this.dfEliteThreshold = json.optDouble("dfEliteThreshold", 1.0);
         this.dfHighThreshold = json.optDouble("dfHighThreshold", 0.142);
@@ -185,23 +186,14 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
     public int getDashboardTopN() { return dashboardTopN; }
     public void setDashboardTopN(int v) { this.dashboardTopN = v; }
 
-    public String getExportStorageType() { return exportStorageType; }
-    public void setExportStorageType(String v) { this.exportStorageType = v; }
-
-    public String getExportEndpoint() { return exportEndpoint; }
-    public void setExportEndpoint(String v) { this.exportEndpoint = v; }
-
-    public String getExportCredentialsId() { return exportCredentialsId; }
-    public void setExportCredentialsId(String v) { this.exportCredentialsId = v; }
-
-    public String getExportBucket() { return exportBucket; }
-    public void setExportBucket(String v) { this.exportBucket = v; }
-
     public boolean isExportEnabled() { return exportEnabled; }
     public void setExportEnabled(boolean v) { this.exportEnabled = v; }
 
     public int getExportIntervalHours() { return exportIntervalHours; }
     public void setExportIntervalHours(int v) { this.exportIntervalHours = v; }
+
+    public io.jenkins.plugins.dorametrics.export.ExportStorageConfig getExportStorage() { return exportStorage; }
+    public void setExportStorage(io.jenkins.plugins.dorametrics.export.ExportStorageConfig v) { this.exportStorage = v; }
 
     public double getDfEliteThreshold() { return dfEliteThreshold; }
     public void setDfEliteThreshold(double v) { this.dfEliteThreshold = v; }
