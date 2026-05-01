@@ -7,8 +7,7 @@
 
         <div class="dora-dashboard">
             <!-- Header -->
-            <div class="dora-header">
-                <h2>DORA Metrics Dashboard</h2>
+            <l:app-bar title="DORA Metrics Dashboard">
                 <div class="dora-controls">
                     <div class="dora-date-picker">
                         <button class="jenkins-button jenkins-button--tertiary dora-date-btn" data-days="7">7d</button>
@@ -25,7 +24,7 @@
                     </div>
                     <a class="jenkins-button" href="../dora-api/export?format=csv" download="dora-metrics.csv">Export CSV</a>
                 </div>
-            </div>
+            </l:app-bar>
 
             <!-- DORA Metric Cards using Jenkins l:card -->
             <div class="dora-cards">

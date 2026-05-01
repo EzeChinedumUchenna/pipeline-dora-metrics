@@ -90,6 +90,14 @@ public class DoraDashboardActionTest {
     }
 
     @Test
+    public void dashboardHasAppBar() throws Exception {
+        HtmlPage page = noJsClient().goTo("dora-metrics");
+        // l:app-bar renders with id="view-message" or class containing "jenkins-app-bar"
+        List<DomElement> appBars = page.getByXPath("//*[contains(@class, 'jenkins-app-bar')]");
+        assertFalse("Dashboard should have an app bar", appBars.isEmpty());
+    }
+
+    @Test
     public void activeButtonHasPrimaryClass() throws Exception {
         HtmlPage page = noJsClient().goTo("dora-metrics");
         // The default active button (30d) should have jenkins-button--primary
