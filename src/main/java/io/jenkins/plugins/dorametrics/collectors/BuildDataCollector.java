@@ -26,7 +26,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * Listens to all build completions and captures metrics into the H2 database.
+ * Listens to all build completions and captures metrics into the SQLite database.
  */
 @Extension
 public class BuildDataCollector extends RunListener<Run<?, ?>> {

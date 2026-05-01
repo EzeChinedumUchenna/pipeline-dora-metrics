@@ -162,7 +162,7 @@ io.jenkins.plugins.dorametrics/
 ## Security
 
 - All API endpoints require Jenkins READ permission
-- Export secret keys are stored using Jenkins `Secret` class (encrypted on disk)
+- Export credentials managed through Jenkins Credentials plugin (encrypted, auditable)
 - SQL queries use parameterized statements (no SQL injection)
 - CSV export protects against CSV injection attacks
 - SQL ORDER BY clauses are whitelisted (not user-controlled)
