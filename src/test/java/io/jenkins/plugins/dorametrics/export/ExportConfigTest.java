@@ -76,4 +76,22 @@ public class ExportConfigTest {
         assertEquals("http-creds", config.getCredentialsId());
         assertEquals("HTTP", config.getStorageType());
     }
+
+    @Test
+    public void s3ExtractsRegionFromEndpoint() {
+        assertEquals("us-east-005", S3ExportConfig.extractRegion("https://s3.us-east-005.backblazeb2.com"));
+        assertEquals("us-west-2", S3ExportConfig.extractRegion("https://s3.us-west-2.amazonaws.com"));
+        assertEquals("us-east-1", S3ExportConfig.extractRegion("https://minio.local:9000"));
+        assertEquals("us-east-1", S3ExportConfig.extractRegion(null));
+        assertEquals("us-east-1", S3ExportConfig.extractRegion(""));
+    }
+
+    @Test
+    public void configClassesImplementUpload() {
+        // Verify the abstract method is implemented (would fail to compile if not)
+        S3ExportConfig s3 = new S3ExportConfig();
+        HttpExportConfig http = new HttpExportConfig();
+        assertNotNull("S3 config should be an ExportStorageConfig", (ExportStorageConfig) s3);
+        assertNotNull("HTTP config should be an ExportStorageConfig", (ExportStorageConfig) http);
+    }
 }
