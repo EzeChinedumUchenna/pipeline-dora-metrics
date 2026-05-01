@@ -8,6 +8,7 @@ import io.jenkins.plugins.dorametrics.store.MetricsStore.BuildRecord;
 import jenkins.model.Jenkins;
 import net.sf.json.JSONArray;
 import net.sf.json.JSONObject;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 
 import javax.crypto.Mac;
 import javax.crypto.spec.SecretKeySpec;
@@ -85,7 +86,8 @@ public class MetricsExporter {
             }
 
             if (storageConfig instanceof io.jenkins.plugins.dorametrics.export.HttpExportConfig httpConfig) {
-                uploadHttp(httpConfig.getUrl(), accessKey, jsonData);
+                String authHeader = resolveHttpAuth(credentialsId);
+                uploadHttp(httpConfig.getUrl(), authHeader, jsonData);
             } else if (storageConfig instanceof io.jenkins.plugins.dorametrics.export.S3ExportConfig s3Config) {
                 String endpoint = s3Config.getEndpoint();
                 String region = extractRegion(endpoint);
@@ -195,16 +197,50 @@ public class MetricsExporter {
     }
 
     /**
+     * Resolve HTTP auth header from credentials.
+     * StringCredentials → Bearer token, UsernamePassword → Basic auth.
+     */
+    private static String resolveHttpAuth(String credentialsId) {
+        if (credentialsId == null || credentialsId.isEmpty()) return null;
+
+        // Try StringCredentials first (secret text → Bearer token)
+        StringCredentials secretCreds = CredentialsProvider.lookupCredentialsInItemGroup(
+                        StringCredentials.class, Jenkins.get(), ACL.SYSTEM2,
+                        java.util.Collections.emptyList())
+                .stream()
+                .filter(c -> credentialsId.equals(c.getId()))
+                .findFirst().orElse(null);
+        if (secretCreds != null) {
+            return "Bearer " + secretCreds.getSecret().getPlainText();
+        }
+
+        // Try UsernamePassword (→ Basic auth)
+        StandardUsernamePasswordCredentials basicCreds = CredentialsProvider.lookupCredentialsInItemGroup(
+                        StandardUsernamePasswordCredentials.class, Jenkins.get(), ACL.SYSTEM2,
+                        java.util.Collections.emptyList())
+                .stream()
+                .filter(c -> credentialsId.equals(c.getId()))
+                .findFirst().orElse(null);
+        if (basicCreds != null) {
+            String raw = basicCreds.getUsername() + ":" + basicCreds.getPassword().getPlainText();
+            return "Basic " + java.util.Base64.getEncoder().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
+        }
+
+        LOGGER.warning("HTTP export credentials not found: " + credentialsId);
+        return null;
+    }
+
+    /**
      * Upload to generic HTTP endpoint.
      */
-    private static void uploadHttp(String endpoint, String authToken, String data) throws IOException, InterruptedException {
+    private static void uploadHttp(String endpoint, String authHeader, String data) throws IOException, InterruptedException {
         HttpRequest.Builder builder = HttpRequest.newBuilder()
                 .uri(URI.create(endpoint))
                 .POST(HttpRequest.BodyPublishers.ofString(data))
                 .header("Content-Type", "application/json");
 
-        if (authToken != null && !authToken.isEmpty()) {
-            builder.header("Authorization", "Bearer " + authToken);
+        if (authHeader != null && !authHeader.isEmpty()) {
+            builder.header("Authorization", authHeader);
         }
 
         HttpResponse<String> response = HTTP.send(builder.build(), HttpResponse.BodyHandlers.ofString());

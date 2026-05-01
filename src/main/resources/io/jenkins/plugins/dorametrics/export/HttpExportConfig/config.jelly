@@ -5,7 +5,7 @@
         <f:textbox/>
     </f:entry>
     <f:entry title="Credentials" field="credentialsId"
-             description="Optional. Username = ignored, Password = Bearer token.">
+             description="Optional. Use 'Secret text' for Bearer token auth, or 'Username with password' for Basic auth.">
         <c:select/>
     </f:entry>
 </j:jelly>

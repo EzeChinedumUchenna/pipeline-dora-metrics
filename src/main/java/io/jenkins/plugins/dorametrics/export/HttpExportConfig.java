@@ -8,6 +8,7 @@ import hudson.model.Descriptor;
 import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
+import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
@@ -55,6 +56,12 @@ public class HttpExportConfig extends ExportStorageConfig {
                             ACL.SYSTEM2,
                             Jenkins.get(),
                             StandardUsernamePasswordCredentials.class,
+                            java.util.Collections.emptyList(),
+                            CredentialsMatchers.always())
+                    .includeMatchingAs(
+                            ACL.SYSTEM2,
+                            Jenkins.get(),
+                            StringCredentials.class,
                             java.util.Collections.emptyList(),
                             CredentialsMatchers.always())
                     .includeCurrentValue(credentialsId);
