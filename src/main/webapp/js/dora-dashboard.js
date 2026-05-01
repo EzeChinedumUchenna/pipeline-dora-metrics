@@ -16,8 +16,14 @@ function toggleSection(header) {
 
 function setDays(days, btn) {
     currentDays = days;
-    document.querySelectorAll('.dora-date-btn').forEach(function(b) { b.classList.remove('active'); });
-    if (btn) btn.classList.add('active');
+    document.querySelectorAll('.dora-date-btn').forEach(function(b) {
+        b.classList.remove('jenkins-button--primary');
+        b.classList.add('jenkins-button--tertiary');
+    });
+    if (btn) {
+        btn.classList.remove('jenkins-button--tertiary');
+        btn.classList.add('jenkins-button--primary');
+    }
     document.getElementById('dora-from').value = '';
     document.getElementById('dora-to').value = '';
     loadCharts(days);
@@ -30,7 +36,10 @@ function applyCustomDate() {
     var fromMs = new Date(from).getTime();
     var toMs = new Date(to).getTime() + 86400000;
     var days = Math.ceil((toMs - fromMs) / 86400000);
-    document.querySelectorAll('.dora-date-btn').forEach(function(b) { b.classList.remove('active'); });
+    document.querySelectorAll('.dora-date-btn').forEach(function(b) {
+        b.classList.remove('jenkins-button--primary');
+        b.classList.add('jenkins-button--tertiary');
+    });
     currentDays = days;
     loadCharts(days);
 }

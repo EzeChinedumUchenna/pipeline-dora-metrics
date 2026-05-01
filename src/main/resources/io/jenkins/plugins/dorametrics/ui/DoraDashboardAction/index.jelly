@@ -12,7 +12,7 @@
                 <div class="dora-controls">
                     <div class="dora-date-picker">
                         <button class="jenkins-button jenkins-button--tertiary dora-date-btn" data-days="7">7d</button>
-                        <button class="jenkins-button jenkins-button--tertiary dora-date-btn active" data-days="30">30d</button>
+                        <button class="jenkins-button jenkins-button--primary dora-date-btn" data-days="30">30d</button>
                         <button class="jenkins-button jenkins-button--tertiary dora-date-btn" data-days="90">90d</button>
                         <button class="jenkins-button jenkins-button--tertiary dora-date-btn" data-days="180">180d</button>
                         <button class="jenkins-button jenkins-button--tertiary dora-date-btn" data-days="365">1y</button>

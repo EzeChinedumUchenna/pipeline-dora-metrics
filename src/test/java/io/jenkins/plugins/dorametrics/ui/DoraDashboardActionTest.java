@@ -90,6 +90,21 @@ public class DoraDashboardActionTest {
     }
 
     @Test
+    public void activeButtonHasPrimaryClass() throws Exception {
+        HtmlPage page = noJsClient().goTo("dora-metrics");
+        // The default active button (30d) should have jenkins-button--primary
+        List<DomElement> primaryBtns = page.getByXPath(
+                "//button[contains(@class, 'dora-date-btn') and contains(@class, 'jenkins-button--primary')]");
+        assertEquals("Exactly one date button should be primary", 1, primaryBtns.size());
+        assertEquals("30", primaryBtns.get(0).getAttribute("data-days"));
+
+        // All other date buttons should be tertiary
+        List<DomElement> tertiaryBtns = page.getByXPath(
+                "//button[contains(@class, 'dora-date-btn') and contains(@class, 'jenkins-button--tertiary')]");
+        assertEquals("Four date buttons should be tertiary", 4, tertiaryBtns.size());
+    }
+
+    @Test
     public void dashboardHasDoraSections() throws Exception {
         HtmlPage page = noJsClient().goTo("dora-metrics");
         List<DomElement> sections = page.getByXPath("//*[contains(@class, 'dora-toggle')]");
