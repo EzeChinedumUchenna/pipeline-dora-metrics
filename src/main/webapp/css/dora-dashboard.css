@@ -25,6 +25,7 @@
 
 /* Rankings grid */
 .dora-tables { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+.dora-tables .jenkins-table { margin-bottom: 0; }
 
 /* Per-job metrics page */
 .job-dora { max-width: 1200px; margin: 0 auto; padding: 16px; }
