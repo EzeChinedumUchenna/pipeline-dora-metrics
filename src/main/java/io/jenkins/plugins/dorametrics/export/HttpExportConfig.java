@@ -111,7 +111,7 @@ public class HttpExportConfig extends ExportStorageConfig {
         }
 
         public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
-            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+            if (!Jenkins.get().hasPermission(Jenkins.MANAGE)) {
                 return new StandardListBoxModel().includeCurrentValue(credentialsId);
             }
             return new StandardListBoxModel()
