@@ -1,9 +1,16 @@
 package io.jenkins.plugins.dorametrics.export;
 
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
 import hudson.Extension;
 import hudson.model.Descriptor;
+import hudson.security.ACL;
+import hudson.util.ListBoxModel;
+import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.DataBoundSetter;
+import org.kohsuke.stapler.QueryParameter;
 
 /**
  * HTTP endpoint export configuration.
@@ -36,6 +43,21 @@ public class HttpExportConfig extends ExportStorageConfig {
         @Override
         public String getDisplayName() {
             return "HTTP Endpoint";
+        }
+
+        public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
+            if (!Jenkins.get().hasPermission(Jenkins.ADMINISTER)) {
+                return new StandardListBoxModel().includeCurrentValue(credentialsId);
+            }
+            return new StandardListBoxModel()
+                    .includeEmptyValue()
+                    .includeMatchingAs(
+                            ACL.SYSTEM2,
+                            Jenkins.get(),
+                            StandardUsernamePasswordCredentials.class,
+                            java.util.Collections.emptyList(),
+                            CredentialsMatchers.always())
+                    .includeCurrentValue(credentialsId);
         }
     }
 }
