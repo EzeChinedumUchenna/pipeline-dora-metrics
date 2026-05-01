@@ -80,8 +80,7 @@ public class S3ExportConfig extends ExportStorageConfig {
                 accessKey = creds.getUsername();
                 secretKey = creds.getPassword().getPlainText();
             } else {
-                LOGGER.warning("S3 export credentials not found: " + credentialsId);
-                return;
+                throw new IOException("S3 export credentials not found: " + credentialsId);
             }
         }
 
@@ -132,7 +131,7 @@ public class S3ExportConfig extends ExportStorageConfig {
         if (response.statusCode() >= 200 && response.statusCode() < 300) {
             LOGGER.fine("S3 upload success: " + key);
         } else {
-            LOGGER.warning("S3 upload failed: HTTP " + response.statusCode() + " - " + response.body());
+            throw new IOException("S3 upload failed: HTTP " + response.statusCode() + " - " + response.body());
         }
     }
 

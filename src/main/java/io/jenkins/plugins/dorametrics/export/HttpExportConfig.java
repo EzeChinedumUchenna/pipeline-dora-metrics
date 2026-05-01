@@ -70,11 +70,11 @@ public class HttpExportConfig extends ExportStorageConfig {
         if (response.statusCode() >= 200 && response.statusCode() < 300) {
             LOGGER.fine("HTTP export success");
         } else {
-            LOGGER.warning("HTTP export failed: HTTP " + response.statusCode());
+            throw new IOException("HTTP export failed: HTTP " + response.statusCode());
         }
     }
 
-    private String resolveAuth() {
+    private String resolveAuth() throws IOException {
         if (credentialsId == null || credentialsId.isEmpty()) return null;
 
         // Try StringCredentials first (secret text -> Bearer token)
@@ -100,8 +100,7 @@ public class HttpExportConfig extends ExportStorageConfig {
             return "Basic " + java.util.Base64.getEncoder().encodeToString(raw.getBytes(StandardCharsets.UTF_8));
         }
 
-        LOGGER.warning("HTTP export credentials not found: " + credentialsId);
-        return null;
+        throw new IOException("HTTP export credentials not found: " + credentialsId);
     }
 
     @Extension
