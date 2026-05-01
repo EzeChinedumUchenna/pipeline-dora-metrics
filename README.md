@@ -61,50 +61,6 @@ GET /dora-api/trends?days=90&job=my-pipeline   Time-series trend data
 GET /dora-api/export?days=90&format=csv    CSV/JSON bulk export
 ```
 
-## Requirements
-
-- **Jenkins:** 2.541.3 LTS or later
-- **Java:** 21 or later
-
-## Jenkins Version Compatibility
-
-| Jenkins Version | Compatible | Notes |
-|----------------|-----------|-------|
-| < 2.440 | No | Requires Java 21 and Stapler2 APIs |
-| 2.440 - 2.540 | Untested | May work but not officially supported |
-| **2.541.x LTS** | Yes | Built and tested against this version |
-| 2.555.x LTS | Yes | Forward compatible |
-| Future LTS releases | Expected | Jenkins maintains backward compatibility |
-
-The plugin is built against the Jenkins LTS baseline `2.541.3` and uses the Jenkins BOM `bom-2.541.x`. It requires Java 21 (the Jenkins standard since 2.440+). The Stapler2 request/response APIs used by this plugin were introduced in recent Jenkins versions, so older Jenkins installations (pre-2.440) are not supported.
-
-## Installation
-
-**From Jenkins Plugin Manager (after publishing):**
-1. Go to Manage Jenkins > Plugins > Available plugins
-2. Search for "Pipeline DORA Metrics"
-3. Check the box and click Install
-4. Restart Jenkins when prompted
-
-**Manual install:**
-1. Download the `.hpi` file from the [Releases](https://github.com/Bisman-Singh/pipeline-dora-metrics/releases) page
-2. Go to Manage Jenkins > Plugins > Advanced > Deploy Plugin
-3. Upload the `.hpi` file
-4. Restart Jenkins
-
-A restart is required after installation. Once restarted, the plugin begins working immediately with zero configuration.
-
-**Important:** The plugin only tracks builds that complete **after** installation. Existing build history is not retroactively imported. The dashboard will show N/A until the first build runs with the plugin active.
-
-## Build from Source
-
-```bash
-# Requires Java 21 and Maven 3.9+
-mvn package -DskipTests
-```
-
-The plugin file will be at `target/pipeline-dora-metrics.hpi`.
-
 ## How It Works
 
 The plugin uses a `RunListener` to automatically capture build data after every pipeline completes. Data is stored in an embedded SQLite database at `JENKINS_HOME/pipeline-dora-metrics/metrics.db`. No external database setup required.
@@ -153,7 +109,7 @@ io.jenkins.plugins.dorametrics/
 │   └── PipelineRanker          # Pipeline and stage rankings (SQL aggregates)
 ├── store/
 │   ├── MetricsStore            # SQLite database
-│   ├── MetricsExporter         # S3/HTTP export with AWS SigV4 signing
+│   ├── MetricsExporter         # Builds snapshots, delegates upload to config
 │   └── MetricsMaintenanceTask  # Scheduled cleanup and export
 ├── ui/
 │   ├── DoraApiAction           # REST API at /dora-api/ (auth-protected)
