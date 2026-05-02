@@ -166,6 +166,20 @@ public class MetricsStoreTest {
     }
 
     @Test
+    public void renameJob() {
+        long now = System.currentTimeMillis();
+        store.insertBuild("old-name", 1, now, 5000, "SUCCESS", "USER", "main");
+        store.insertBuild("old-name", 2, now, 6000, "FAILURE", "USER", "main");
+
+        store.renameJob("old-name", "new-name");
+
+        List<MetricsStore.BuildRecord> oldBuilds = store.getBuilds("old-name", now - 1000, now + 1000);
+        List<MetricsStore.BuildRecord> newBuilds = store.getBuilds("new-name", now - 1000, now + 1000);
+        assertTrue("Old name should have no builds", oldBuilds.isEmpty());
+        assertEquals("New name should have 2 builds", 2, newBuilds.size());
+    }
+
+    @Test
     public void avgLeadTimeMs() {
         long now = System.currentTimeMillis();
         long commitTime = now - 1800000; // 30 min before

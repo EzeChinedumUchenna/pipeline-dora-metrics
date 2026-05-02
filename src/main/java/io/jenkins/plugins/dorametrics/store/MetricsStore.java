@@ -427,6 +427,19 @@ public class MetricsStore {
                 .replace("\\.", ".");
     }
 
+    public void renameJob(String oldName, String newName) {
+        String sql = "UPDATE builds SET job_name = ? WHERE job_name = ?";
+        try (Connection conn = getConnection();
+             PreparedStatement ps = conn.prepareStatement(sql)) {
+            ps.setString(1, newName);
+            ps.setString(2, oldName);
+            int updated = ps.executeUpdate();
+            LOGGER.fine("Renamed " + updated + " build records from " + oldName + " to " + newName);
+        } catch (SQLException e) {
+            LOGGER.log(Level.WARNING, "Failed to rename job: " + oldName + " -> " + newName, e);
+        }
+    }
+
     // === Maintenance ===
 
     public void cleanup(long retainAfterTimestamp) {
