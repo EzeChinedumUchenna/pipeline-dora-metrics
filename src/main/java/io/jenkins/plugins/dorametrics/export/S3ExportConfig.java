@@ -10,6 +10,7 @@ import hudson.security.ACL;
 import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.verb.POST;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -191,6 +192,7 @@ public class S3ExportConfig extends ExportStorageConfig {
             return "S3-Compatible (AWS S3, Backblaze B2, MinIO)";
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
             if (!Jenkins.get().hasPermission(Jenkins.MANAGE)) {
                 return new StandardListBoxModel().includeCurrentValue(credentialsId);

@@ -11,6 +11,7 @@ import hudson.util.ListBoxModel;
 import jenkins.model.Jenkins;
 import org.jenkinsci.plugins.plaincredentials.StringCredentials;
 import org.kohsuke.stapler.DataBoundConstructor;
+import org.kohsuke.stapler.verb.POST;
 import org.kohsuke.stapler.DataBoundSetter;
 import org.kohsuke.stapler.QueryParameter;
 
@@ -110,6 +111,7 @@ public class HttpExportConfig extends ExportStorageConfig {
             return "HTTP Endpoint";
         }
 
+        @POST
         public ListBoxModel doFillCredentialsIdItems(@QueryParameter String credentialsId) {
             if (!Jenkins.get().hasPermission(Jenkins.MANAGE)) {
                 return new StandardListBoxModel().includeCurrentValue(credentialsId);

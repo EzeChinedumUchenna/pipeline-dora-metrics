@@ -6,6 +6,7 @@ import jenkins.model.GlobalConfiguration;
 import net.sf.json.JSONObject;
 import org.kohsuke.stapler.QueryParameter;
 import org.kohsuke.stapler.StaplerRequest2;
+import org.kohsuke.stapler.verb.POST;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -127,28 +128,40 @@ public class DoraGlobalConfiguration extends GlobalConfiguration {
         }
     }
 
-    // --- Form validation ---
+    // --- Form validation (simple input checks, no data access) ---
 
+    @POST
+    @SuppressWarnings("lgtm[jenkins/no-permission-check]")
     public FormValidation doCheckRetentionDays(@QueryParameter String value) {
         return validatePositiveInt(value, "Retention days");
     }
 
+    @POST
+    @SuppressWarnings("lgtm[jenkins/no-permission-check]")
     public FormValidation doCheckDashboardTopN(@QueryParameter String value) {
         return validatePositiveInt(value, "Dashboard Top N");
     }
 
+    @POST
+    @SuppressWarnings("lgtm[jenkins/no-permission-check]")
     public FormValidation doCheckExportIntervalHours(@QueryParameter String value) {
         return validatePositiveInt(value, "Export interval");
     }
 
+    @POST
+    @SuppressWarnings("lgtm[jenkins/no-permission-check]")
     public FormValidation doCheckCfrElitePercent(@QueryParameter String value) {
         return validatePercent(value);
     }
 
+    @POST
+    @SuppressWarnings("lgtm[jenkins/no-permission-check]")
     public FormValidation doCheckCfrHighPercent(@QueryParameter String value) {
         return validatePercent(value);
     }
 
+    @POST
+    @SuppressWarnings("lgtm[jenkins/no-permission-check]")
     public FormValidation doCheckCfrMediumPercent(@QueryParameter String value) {
         return validatePercent(value);
     }
