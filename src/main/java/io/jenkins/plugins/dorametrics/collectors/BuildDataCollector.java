@@ -6,6 +6,7 @@ import hudson.model.Run;
 import hudson.model.TaskListener;
 import hudson.model.listeners.RunListener;
 import hudson.scm.ChangeLogSet;
+import jenkins.scm.RunWithSCM;
 import io.jenkins.plugins.dorametrics.DoraGlobalConfiguration;
 import io.jenkins.plugins.dorametrics.store.MetricsStore;
 import org.jenkinsci.plugins.workflow.actions.ErrorAction;
@@ -84,16 +85,9 @@ public class BuildDataCollector extends RunListener<Run<?, ?>> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     private List<ChangeLogSet<? extends ChangeLogSet.Entry>> getChangeSets(Run<?, ?> run) {
-        if (run instanceof WorkflowRun) {
-            return ((WorkflowRun) run).getChangeSets();
-        }
-        if (run instanceof hudson.model.AbstractBuild) {
-            ChangeLogSet<? extends ChangeLogSet.Entry> cs = ((hudson.model.AbstractBuild<?, ?>) run).getChangeSet();
-            if (cs != null && !cs.isEmptySet()) {
-                return Collections.singletonList(cs);
-            }
+        if (run instanceof RunWithSCM<?, ?> rws) {
+            return rws.getChangeSets();
         }
         return Collections.emptyList();
     }
