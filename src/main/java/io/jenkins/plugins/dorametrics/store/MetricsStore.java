@@ -421,6 +421,10 @@ public class MetricsStore {
      */
     static String regexToGlob(String regex) {
         if (regex == null || ".*".equals(regex)) return "*";
+        // Handle Pattern.quote() output: ^\Qliteral\E$
+        if (regex.startsWith("^\\Q") && regex.endsWith("\\E$")) {
+            return regex.substring(3, regex.length() - 3);
+        }
         return regex
                 .replace(".*", "*")
                 .replace(".+", "?*")

@@ -101,6 +101,20 @@ public class MetricsStoreTest {
     }
 
     @Test
+    public void countBuildsWithExactPattern() {
+        long now = System.currentTimeMillis();
+        store.insertBuild("api-gateway", 1, now, 5000, "SUCCESS", "USER", null);
+        store.insertBuild("api-gateway", 2, now, 5000, "FAILURE", "USER", null);
+        store.insertBuild("other-job", 1, now, 5000, "SUCCESS", "USER", null);
+
+        // Pattern.quote produces ^\Qapi-gateway\E$
+        String pattern = "^" + java.util.regex.Pattern.quote("api-gateway") + "$";
+        assertEquals(2, store.countTotalBuilds(now - 1000, now + 1000, pattern));
+        assertEquals(1, store.countSuccessfulBuilds(now - 1000, now + 1000, pattern));
+        assertEquals(1, store.countFailedBuilds(now - 1000, now + 1000, pattern));
+    }
+
+    @Test
     public void getJobStats() {
         long now = System.currentTimeMillis();
         store.insertBuild("slow-job", 1, now, 30000, "SUCCESS", "USER", null);
