@@ -98,7 +98,8 @@ Navigate to **Manage Jenkins > System** and scroll to the **Pipeline DORA Metric
 ```
 io.jenkins.plugins.dorametrics/
 ├── collectors/
-│   └── BuildDataCollector      # RunListener - captures builds, stages, commits
+│   ├── BuildDataCollector      # RunListener - captures builds, stages, commits
+│   └── JobRenameListener       # ItemListener - tracks job renames/moves
 ├── dora/
 │   └── DoraCalculator          # Computes all 4 DORA metrics (SQL-optimized)
 ├── export/
