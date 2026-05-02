@@ -1,5 +1,6 @@
 package io.jenkins.plugins.dorametrics.ui;
 
+import hudson.model.FreeStyleProject;
 import hudson.model.RootAction;
 import jenkins.model.Jenkins;
 import org.htmlunit.html.DomElement;
@@ -10,6 +11,7 @@ import org.junit.Test;
 import org.jvnet.hudson.test.JenkinsRule;
 import org.jvnet.hudson.test.JenkinsRule.WebClient;
 import io.jenkins.plugins.dorametrics.store.MetricsStore;
+import io.jenkins.plugins.dorametrics.rankings.PipelineRanker.RankedPipeline;
 
 import java.util.List;
 
@@ -121,7 +123,8 @@ public class DoraDashboardActionTest {
 
     @Test
     public void tableLinksHaveLinkClass() throws Exception {
-        // Seed a build so the tables have rows with links
+        // Create a real job AND seed build data so the filter passes
+        j.createFreeStyleProject("test-link-job");
         MetricsStore.getInstance().insertBuild("test-link-job", 1,
                 System.currentTimeMillis(), 5000, "SUCCESS", "USER", "main");
         HtmlPage page = noJsClient().goTo("dora-metrics");
@@ -129,6 +132,30 @@ public class DoraDashboardActionTest {
                 "//table[contains(@class, 'jenkins-table')]//a[contains(@class, 'jenkins-table__link')]");
         // With one build, at least the slowest pipelines table should have a link
         assertFalse("Table links should have jenkins-table__link class", tableLinks.isEmpty());
+    }
+
+    @Test
+    public void rankingsFilterByJobPermission() throws Exception {
+        // Create jobs and seed build data
+        j.createFreeStyleProject("visible-job");
+        j.createFreeStyleProject("hidden-job");
+
+        MetricsStore store = MetricsStore.getInstance();
+        long now = System.currentTimeMillis();
+        store.insertBuild("visible-job", 1, now, 5000, "SUCCESS", "USER", "main");
+        store.insertBuild("hidden-job", 1, now, 5000, "SUCCESS", "USER", "main");
+        // Also seed a non-existent job (simulates renamed/deleted job)
+        store.insertBuild("deleted-job", 1, now, 5000, "SUCCESS", "USER", "main");
+
+        // Without security, all existing jobs visible, deleted-job filtered out
+        DoraDashboardAction action = new DoraDashboardAction();
+        List<RankedPipeline> slowest = action.getSlowestPipelines();
+        assertTrue("Should see visible-job",
+                slowest.stream().anyMatch(p -> p.jobName.equals("visible-job")));
+        assertTrue("Should see hidden-job",
+                slowest.stream().anyMatch(p -> p.jobName.equals("hidden-job")));
+        assertFalse("Should NOT see deleted-job (no longer exists in Jenkins)",
+                slowest.stream().anyMatch(p -> p.jobName.equals("deleted-job")));
     }
 
     @Test

@@ -2,6 +2,7 @@ package io.jenkins.plugins.dorametrics.ui;
 
 import hudson.Extension;
 import hudson.model.RootAction;
+import hudson.model.Item;
 import io.jenkins.plugins.dorametrics.DoraGlobalConfiguration;
 import io.jenkins.plugins.dorametrics.dora.DoraCalculator;
 import io.jenkins.plugins.dorametrics.dora.DoraCalculator.DoraMetric;
@@ -67,10 +68,11 @@ public class DoraApiAction implements RootAction {
         long fromMs = toMs - ((long) days * 86400_000);
 
         PipelineRanker ranker = new PipelineRanker();
+        Jenkins jenkins = Jenkins.get();
         JSONObject json = new JSONObject();
-        json.put("slowest", rankingsToJson(ranker.slowestPipelines(fromMs, toMs, limit)));
-        json.put("most_failing", rankingsToJson(ranker.mostFailingPipelines(fromMs, toMs, limit)));
-        json.put("flakiest", rankingsToJson(ranker.flakiestPipelines(fromMs, toMs, limit)));
+        json.put("slowest", rankingsToJson(filterVisible(ranker.slowestPipelines(fromMs, toMs, limit), jenkins)));
+        json.put("most_failing", rankingsToJson(filterVisible(ranker.mostFailingPipelines(fromMs, toMs, limit), jenkins)));
+        json.put("flakiest", rankingsToJson(filterVisible(ranker.flakiestPipelines(fromMs, toMs, limit), jenkins)));
 
         return new org.kohsuke.stapler.json.JsonHttpResponse(json, 200);
     }
@@ -178,6 +180,15 @@ public class DoraApiAction implements RootAction {
             return "\"" + value.replace("\"", "\"\"") + "\"";
         }
         return value;
+    }
+
+    private static List<RankedPipeline> filterVisible(List<RankedPipeline> pipelines, Jenkins jenkins) {
+        return pipelines.stream()
+                .filter(p -> {
+                    Item item = jenkins.getItemByFullName(p.jobName);
+                    return item != null && item.hasPermission(Item.READ);
+                })
+                .collect(java.util.stream.Collectors.toList());
     }
 
     private String getPattern() {

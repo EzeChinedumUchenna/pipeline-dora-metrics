@@ -1,6 +1,7 @@
 package io.jenkins.plugins.dorametrics.ui;
 
 import hudson.Extension;
+import hudson.model.Item;
 import hudson.model.RootAction;
 import io.jenkins.plugins.dorametrics.DoraGlobalConfiguration;
 import io.jenkins.plugins.dorametrics.dora.DoraCalculator;
@@ -11,6 +12,7 @@ import io.jenkins.plugins.dorametrics.rankings.PipelineRanker.RankedStage;
 import jenkins.model.Jenkins;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Dashboard UI at /dora-metrics/. Data methods called from Jelly template.
@@ -54,24 +56,24 @@ public class DoraDashboardAction implements RootAction {
     }
 
     public List<RankedPipeline> getSlowestPipelines() {
-        try { return new PipelineRanker().slowestPipelines(thirtyDaysAgo(), now(), getTopN()); }
+        try { return filterVisible(new PipelineRanker().slowestPipelines(thirtyDaysAgo(), now(), getTopN())); }
         catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getMostFailingPipelines() {
-        try { return new PipelineRanker().mostFailingPipelines(thirtyDaysAgo(), now(), getTopN()); }
+        try { return filterVisible(new PipelineRanker().mostFailingPipelines(thirtyDaysAgo(), now(), getTopN())); }
         catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getMostImprovedPipelines() {
         try {
             long n = now(); long ago = thirtyDaysAgo();
-            return new PipelineRanker().mostImproved(ago, n, ago - (30L * 86400_000), ago, getTopN());
+            return filterVisible(new PipelineRanker().mostImproved(ago, n, ago - (30L * 86400_000), ago, getTopN()));
         } catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getFlakiestPipelines() {
-        try { return new PipelineRanker().flakiestPipelines(thirtyDaysAgo(), now(), getTopN()); }
+        try { return filterVisible(new PipelineRanker().flakiestPipelines(thirtyDaysAgo(), now(), getTopN())); }
         catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
@@ -92,6 +94,19 @@ public class DoraDashboardAction implements RootAction {
     public String jobUrl(String jobName) {
         if (jobName == null) return "";
         return "job/" + jobName.replace("/", "/job/");
+    }
+
+    /**
+     * Filter out jobs the current user does not have permission to see.
+     */
+    private List<RankedPipeline> filterVisible(List<RankedPipeline> pipelines) {
+        Jenkins jenkins = Jenkins.get();
+        return pipelines.stream()
+                .filter(p -> {
+                    Item item = jenkins.getItemByFullName(p.jobName);
+                    return item != null && item.hasPermission(Item.READ);
+                })
+                .collect(Collectors.toList());
     }
 
     // === Helpers ===
