@@ -2,7 +2,7 @@
 
 A Jenkins plugin that tracks all four DORA metrics, pipeline analytics, rankings, and performance trends. No external infrastructure required.
 
-![Dashboard Overview](docs/dora-metrics-dashboard.png)
+![Dashboard Overview](docs/dora-dashboard.png)
 
 ## Features
 
@@ -12,46 +12,50 @@ A Jenkins plugin that tracks all four DORA metrics, pipeline analytics, rankings
 - Mean Time to Restore (failure to recovery)
 - Change Failure Rate (% failed deployments)
 
-**Pipeline Rankings**
+**Pipeline Rankings and Stage Analytics**
 
-![Pipeline Rankings](docs/Pipeline-rankings.png)
+![Pipeline Rankings and Stage Analytics](docs/dora-rankings-stages.png)
 
 - Slowest pipelines by average duration
 - Most failing pipelines by failure rate
 - Most improved (month-over-month duration change)
 - Flakiest pipelines (pass-fail-pass pattern detection)
-
-**Stage-Level Insights**
-
-![Stage Analytics](docs/stage-analysis.png)
-
-- Slowest stages across all pipelines
-- Most failing stages by failure rate
-
-**Dashboard**
-- Interactive Chart.js trend charts (build volume, duration over time)
-- Sparkline trends on each DORA metric card
-- Date range picker (7d / 30d / 90d / 180d / 1y / custom date range)
-- Collapsible sections
-- Job drill-down links (click any pipeline to see its per-job metrics)
-- Per-job DORA Metrics tab on every job page
-- CSV and JSON export
+- Slowest and most failing stages across all pipelines
 
 **Per-Job Metrics**
 
 ![Per-Job Metrics](docs/per-job-dora.png)
 
+- Per-job DORA Metrics tab on every job page
+- Stage breakdown with duration and run counts
+
+**Dashboard**
+- Interactive Chart.js trend charts (build volume, duration over time)
+- Sparkline trends on each DORA metric card
+- Date range picker (7d / 30d / 90d / 180d / 1y / custom date range)
+- Collapsible sections with chevron indicators
+- Job drill-down links (click any pipeline to see its per-job metrics)
+- CSV and JSON export
+- Permission-aware: users only see jobs they have access to
+
 **Configuration**
 
-![Configuration](docs/manage-jenkins-config.png)
+![Configuration](docs/configuration.png)
+
+![Cloud Export and Thresholds](docs/configuration-export.png)
 
 - Production job pattern (regex)
 - Excluded job pattern (regex)
 - Folder-based job selection
 - Branch filtering (main/master or custom)
 - Customizable DORA band thresholds
-- Configurable data retention period
-- External storage export settings (S3-compatible, HTTP endpoint)
+- Cloud storage export (S3-compatible, HTTP endpoint) with Jenkins Credentials
+
+**Permission-Aware Dashboard**
+
+![Viewer Dashboard](docs/viewer-dashboard.png)
+
+Rankings only show jobs the current user has access to. Users with limited permissions see a filtered view.
 
 **REST API**
 ```
@@ -125,6 +129,7 @@ io.jenkins.plugins.dorametrics/
 ## Security
 
 - All API endpoints require Jenkins READ permission
+- Dashboard rankings filtered by Item.READ (users only see jobs they can access)
 - Export credentials managed through Jenkins Credentials plugin (encrypted, auditable)
 - SQL queries use parameterized statements (no SQL injection)
 - CSV export protects against CSV injection attacks
@@ -154,7 +159,7 @@ io.jenkins.plugins.dorametrics/
 1. Fork the repository
 2. Create a feature branch
 3. Write tests for new functionality
-4. Run `mvn test` (all 82 tests must pass)
+4. Run `mvn test` (all 87 tests must pass)
 5. Submit a pull request
 
 ## License
