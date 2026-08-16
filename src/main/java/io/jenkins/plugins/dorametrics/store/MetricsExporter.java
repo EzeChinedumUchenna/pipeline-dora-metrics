@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 /**
  * Builds metrics snapshots and delegates upload to the configured storage backend.
@@ -31,7 +32,7 @@ public class MetricsExporter {
             long now = System.currentTimeMillis();
             long dayAgo = now - 86400_000;
 
-            List<BuildRecord> builds = store.getAllBuilds(dayAgo, now);
+            List<BuildRecord> builds = filterTrackedBuilds(store.getAllBuilds(dayAgo, now), config);
             if (builds.isEmpty()) {
                 LOGGER.fine("No builds in last 24h, skipping export");
                 return;
@@ -61,8 +62,16 @@ public class MetricsExporter {
         MetricsStore store = MetricsStore.getInstance();
         long now = System.currentTimeMillis();
         long fromMs = now - ((long) days * 86400_000);
-        List<BuildRecord> builds = store.getAllBuilds(fromMs, now);
+        List<BuildRecord> builds = filterTrackedBuilds(store.getAllBuilds(fromMs, now), DoraGlobalConfiguration.get());
         return buildSnapshot(builds, store, now);
+    }
+
+    private static List<BuildRecord> filterTrackedBuilds(List<BuildRecord> builds,
+                                                           DoraGlobalConfiguration config) {
+        if (config == null) return builds;
+        return builds.stream()
+                .filter(b -> config.shouldTrackJob(b.jobName))
+                .collect(Collectors.toList());
     }
 
     static String buildSnapshot(List<BuildRecord> builds, MetricsStore store, long timestamp) {

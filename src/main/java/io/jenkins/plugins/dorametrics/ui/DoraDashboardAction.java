@@ -36,54 +36,55 @@ public class DoraDashboardAction implements RootAction {
             new DoraMetric("N/A", "N/A", DoraCalculator.DoraBand.LOW, 0);
 
     public DoraMetric getDeploymentFrequency() {
-        try { return new DoraCalculator().deploymentFrequency(thirtyDaysAgo(), now(), getPattern()); }
+        try { return new DoraCalculator().deploymentFrequency(thirtyDaysAgo(), now(), this::shouldTrackJob); }
         catch (Exception e) { return EMPTY_METRIC; }
     }
 
     public DoraMetric getLeadTime() {
-        try { return new DoraCalculator().leadTimeForChanges(thirtyDaysAgo(), now(), getPattern()); }
+        try { return new DoraCalculator().leadTimeForChanges(thirtyDaysAgo(), now(), this::shouldTrackJob); }
         catch (Exception e) { return EMPTY_METRIC; }
     }
 
     public DoraMetric getMttr() {
-        try { return new DoraCalculator().meanTimeToRestore(thirtyDaysAgo(), now(), getPattern()); }
+        try { return new DoraCalculator().meanTimeToRestore(thirtyDaysAgo(), now(), this::shouldTrackJob); }
         catch (Exception e) { return EMPTY_METRIC; }
     }
 
     public DoraMetric getChangeFailureRate() {
-        try { return new DoraCalculator().changeFailureRate(thirtyDaysAgo(), now(), getPattern()); }
+        try { return new DoraCalculator().changeFailureRate(thirtyDaysAgo(), now(), this::shouldTrackJob); }
         catch (Exception e) { return EMPTY_METRIC; }
     }
 
     public List<RankedPipeline> getSlowestPipelines() {
-        try { return filterVisible(new PipelineRanker().slowestPipelines(thirtyDaysAgo(), now(), getTopN())); }
+        try { return filterVisible(new PipelineRanker().slowestPipelines(thirtyDaysAgo(), now(), getTopN(), this::shouldTrackJob)); }
         catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getMostFailingPipelines() {
-        try { return filterVisible(new PipelineRanker().mostFailingPipelines(thirtyDaysAgo(), now(), getTopN())); }
+        try { return filterVisible(new PipelineRanker().mostFailingPipelines(thirtyDaysAgo(), now(), getTopN(), this::shouldTrackJob)); }
         catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getMostImprovedPipelines() {
         try {
             long n = now(); long ago = thirtyDaysAgo();
-            return filterVisible(new PipelineRanker().mostImproved(ago, n, ago - (30L * 86400_000), ago, getTopN()));
+            return filterVisible(new PipelineRanker().mostImproved(
+                    ago, n, ago - (30L * 86400_000), ago, getTopN(), this::shouldTrackJob));
         } catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedPipeline> getFlakiestPipelines() {
-        try { return filterVisible(new PipelineRanker().flakiestPipelines(thirtyDaysAgo(), now(), getTopN())); }
+        try { return filterVisible(new PipelineRanker().flakiestPipelines(thirtyDaysAgo(), now(), getTopN(), this::shouldTrackJob)); }
         catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedStage> getSlowestStages() {
-        try { return new PipelineRanker().slowestStages(thirtyDaysAgo(), now(), getTopN()); }
+        try { return new PipelineRanker().slowestStages(thirtyDaysAgo(), now(), getTopN(), this::shouldTrackJob); }
         catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
     public List<RankedStage> getMostFailingStages() {
-        try { return new PipelineRanker().mostFailingStages(thirtyDaysAgo(), now(), getTopN()); }
+        try { return new PipelineRanker().mostFailingStages(thirtyDaysAgo(), now(), getTopN(), this::shouldTrackJob); }
         catch (Exception e) { return java.util.Collections.emptyList(); }
     }
 
@@ -111,9 +112,9 @@ public class DoraDashboardAction implements RootAction {
 
     // === Helpers ===
 
-    private String getPattern() {
+    private boolean shouldTrackJob(String jobName) {
         DoraGlobalConfiguration config = DoraGlobalConfiguration.get();
-        return config != null ? config.getProductionJobPattern() : ".*";
+        return config == null || config.shouldTrackJob(jobName);
     }
 
     private int getTopN() {

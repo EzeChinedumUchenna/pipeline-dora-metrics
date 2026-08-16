@@ -114,4 +114,17 @@ public class PipelineRankerTest {
         List<PipelineRanker.RankedPipeline> slowest = ranker.slowestPipelines(now - 1000, now + 1000, 5);
         assertEquals(5, slowest.size());
     }
+
+    @Test
+    public void rankingCanExcludeHistoricalJobData() {
+        long now = System.currentTimeMillis();
+        store.insertBuild("included-prod", 1, now, 5000, "SUCCESS", "USER", null);
+        store.insertBuild("excluded-pre-prod", 1, now, 60000, "SUCCESS", "USER", null);
+
+        List<PipelineRanker.RankedPipeline> slowest = ranker.slowestPipelines(
+                now - 1000, now + 1000, 10, jobName -> !jobName.equals("excluded-pre-prod"));
+
+        assertEquals(1, slowest.size());
+        assertEquals("included-prod", slowest.get(0).jobName);
+    }
 }

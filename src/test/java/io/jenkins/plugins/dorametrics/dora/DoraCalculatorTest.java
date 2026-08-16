@@ -83,6 +83,18 @@ public class DoraCalculatorTest {
     }
 
     @Test
+    public void calculationCanExcludeHistoricalJobData() {
+        long now = System.currentTimeMillis();
+        store.insertBuild("included-prod", 1, now, 5000, "SUCCESS", "SCM", "main");
+        store.insertBuild("excluded-pre-prod", 1, now, 5000, "FAILURE", "SCM", "main");
+
+        DoraCalculator.DoraMetric cfr = calc.changeFailureRate(now - 1000, now + 1000,
+                jobName -> !jobName.equals("excluded-pre-prod"));
+
+        assertEquals(0.0, cfr.rawValue, 0.1);
+    }
+
+    @Test
     public void leadTimeWithCommits() {
         long now = System.currentTimeMillis();
         long commitTime = now - 1800000; // 30 min before

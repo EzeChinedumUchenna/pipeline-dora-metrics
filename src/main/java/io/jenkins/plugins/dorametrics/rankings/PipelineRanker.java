@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -36,6 +37,20 @@ public class PipelineRanker {
         return ranked;
     }
 
+    /** Rank pipelines after applying a job-name filter to stored builds. */
+    public List<RankedPipeline> slowestPipelines(long fromMs, long toMs, int limit,
+                                                   Predicate<String> includeJob) {
+        List<RankedPipeline> ranked = groupByJob(fromMs, toMs, includeJob).entrySet().stream()
+                .map(entry -> {
+                    double average = entry.getValue().stream().mapToLong(b -> b.durationMs).average().orElse(0);
+                    return new RankedPipeline(entry.getKey(), average,
+                            DurationFormatter.format((long) average), entry.getValue().size());
+                })
+                .sorted((a, b) -> Double.compare(b.value, a.value))
+                .collect(Collectors.toList());
+        return ranked.stream().limit(limit).collect(Collectors.toList());
+    }
+
     public List<RankedPipeline> mostFailingPipelines(long fromMs, long toMs, int limit) {
         List<MetricsStore.JobStats> stats = store.getJobStats(fromMs, toMs, limit * 2, "failures DESC");
         List<RankedPipeline> ranked = new ArrayList<>();
@@ -48,10 +63,51 @@ public class PipelineRanker {
         return ranked.stream().limit(limit).collect(Collectors.toList());
     }
 
+    /** Rank pipeline failure rates after applying a job-name filter to stored builds. */
+    public List<RankedPipeline> mostFailingPipelines(long fromMs, long toMs, int limit,
+                                                       Predicate<String> includeJob) {
+        List<RankedPipeline> ranked = groupByJob(fromMs, toMs, includeJob).entrySet().stream()
+                .map(entry -> {
+                    long failures = entry.getValue().stream().filter(BuildRecord::isFailure).count();
+                    double failureRate = (double) failures / entry.getValue().size() * 100;
+                    return new RankedPipeline(entry.getKey(), failureRate,
+                            String.format("%.1f%%", failureRate), entry.getValue().size());
+                })
+                .sorted((a, b) -> Double.compare(b.value, a.value))
+                .collect(Collectors.toList());
+        return ranked.stream().limit(limit).collect(Collectors.toList());
+    }
+
     public List<RankedPipeline> mostImproved(long currentFrom, long currentTo,
                                               long previousFrom, long previousTo, int limit) {
         Map<String, List<BuildRecord>> current = groupByJob(currentFrom, currentTo);
         Map<String, List<BuildRecord>> previous = groupByJob(previousFrom, previousTo);
+        List<RankedPipeline> ranked = new ArrayList<>();
+
+        for (String jobName : current.keySet()) {
+            if (!previous.containsKey(jobName)) continue;
+
+            double currentAvg = current.get(jobName).stream()
+                    .mapToLong(b -> b.durationMs).average().orElse(0);
+            double previousAvg = previous.get(jobName).stream()
+                    .mapToLong(b -> b.durationMs).average().orElse(0);
+            if (previousAvg <= 0) continue;
+
+            double improvement = ((previousAvg - currentAvg) / previousAvg) * 100;
+            ranked.add(new RankedPipeline(jobName, improvement,
+                    String.format("%+.1f%%", -improvement), current.get(jobName).size()));
+        }
+
+        ranked.sort((a, b) -> Double.compare(b.value, a.value));
+        return ranked.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    /** Rank duration improvements after applying a job-name filter to stored builds. */
+    public List<RankedPipeline> mostImproved(long currentFrom, long currentTo,
+                                              long previousFrom, long previousTo, int limit,
+                                              Predicate<String> includeJob) {
+        Map<String, List<BuildRecord>> current = groupByJob(currentFrom, currentTo, includeJob);
+        Map<String, List<BuildRecord>> previous = groupByJob(previousFrom, previousTo, includeJob);
         List<RankedPipeline> ranked = new ArrayList<>();
 
         for (String jobName : current.keySet()) {
@@ -97,6 +153,12 @@ public class PipelineRanker {
         return ranked.stream().limit(limit).collect(Collectors.toList());
     }
 
+    /** Rank flaky pipelines after applying a job-name filter to stored builds. */
+    public List<RankedPipeline> flakiestPipelines(long fromMs, long toMs, int limit,
+                                                   Predicate<String> includeJob) {
+        return flakiestPipelines(groupByJob(fromMs, toMs, includeJob), limit);
+    }
+
     public List<RankedStage> slowestStages(long fromMs, long toMs, int limit) {
         List<MetricsStore.StageStats> stats = store.getStageStats(fromMs, toMs, limit, "avg_dur DESC");
         List<RankedStage> ranked = new ArrayList<>();
@@ -105,6 +167,21 @@ public class PipelineRanker {
                     DurationFormatter.format((long) s.avgDurationMs), s.totalRuns));
         }
         return ranked;
+    }
+
+    /** Rank stages from builds whose job names pass the supplied filter. */
+    public List<RankedStage> slowestStages(long fromMs, long toMs, int limit,
+                                           Predicate<String> includeJob) {
+        Map<String, List<MetricsStore.StageRecord>> stages = groupStagesByName(fromMs, toMs, includeJob);
+        return stages.entrySet().stream()
+                .map(entry -> {
+                    double average = entry.getValue().stream().mapToLong(s -> s.durationMs).average().orElse(0);
+                    return new RankedStage(entry.getKey(), average,
+                            DurationFormatter.format((long) average), entry.getValue().size());
+                })
+                .sorted((a, b) -> Double.compare(b.value, a.value))
+                .limit(limit)
+                .collect(Collectors.toList());
     }
 
     public List<RankedStage> mostFailingStages(long fromMs, long toMs, int limit) {
@@ -119,9 +196,63 @@ public class PipelineRanker {
         return ranked.stream().limit(limit).collect(Collectors.toList());
     }
 
+    /** Rank stage failure rates from builds whose job names pass the supplied filter. */
+    public List<RankedStage> mostFailingStages(long fromMs, long toMs, int limit,
+                                                Predicate<String> includeJob) {
+        Map<String, List<MetricsStore.StageRecord>> stages = groupStagesByName(fromMs, toMs, includeJob);
+        return stages.entrySet().stream()
+                .map(entry -> {
+                    long failures = entry.getValue().stream().filter(s -> "FAILURE".equals(s.result)).count();
+                    double failureRate = (double) failures / entry.getValue().size() * 100;
+                    return new RankedStage(entry.getKey(), failureRate,
+                            String.format("%.1f%%", failureRate), entry.getValue().size());
+                })
+                .sorted((a, b) -> Double.compare(b.value, a.value))
+                .limit(limit)
+                .collect(Collectors.toList());
+    }
+
     private Map<String, List<BuildRecord>> groupByJob(long fromMs, long toMs) {
         return store.getAllBuilds(fromMs, toMs).stream()
                 .collect(Collectors.groupingBy(b -> b.jobName));
+    }
+
+    private Map<String, List<BuildRecord>> groupByJob(long fromMs, long toMs,
+                                                        Predicate<String> includeJob) {
+        return store.getAllBuilds(fromMs, toMs).stream()
+                .filter(b -> includeJob == null || includeJob.test(b.jobName))
+                .collect(Collectors.groupingBy(b -> b.jobName));
+    }
+
+    private List<RankedPipeline> flakiestPipelines(Map<String, List<BuildRecord>> byJob, int limit) {
+        List<RankedPipeline> ranked = new ArrayList<>();
+        for (Map.Entry<String, List<BuildRecord>> entry : byJob.entrySet()) {
+            List<BuildRecord> builds = entry.getValue();
+            if (builds.size() < 3) continue;
+
+            builds.sort(Comparator.comparingLong(b -> b.timestamp));
+            int transitions = 0;
+            for (int i = 1; i < builds.size(); i++) {
+                if (!builds.get(i).result.equals(builds.get(i - 1).result)) {
+                    transitions++;
+                }
+            }
+
+            double flakyScore = (double) transitions / (builds.size() - 1) * 100;
+            ranked.add(new RankedPipeline(entry.getKey(), flakyScore,
+                    String.format("%.0f%% transitions", flakyScore), builds.size()));
+        }
+
+        ranked.sort((a, b) -> Double.compare(b.value, a.value));
+        return ranked.stream().limit(limit).collect(Collectors.toList());
+    }
+
+    private Map<String, List<MetricsStore.StageRecord>> groupStagesByName(long fromMs, long toMs,
+                                                                            Predicate<String> includeJob) {
+        return store.getAllBuilds(fromMs, toMs).stream()
+                .filter(b -> includeJob == null || includeJob.test(b.jobName))
+                .flatMap(b -> store.getStages(b.id).stream())
+                .collect(Collectors.groupingBy(s -> s.stageName));
     }
 
     public static class RankedPipeline {

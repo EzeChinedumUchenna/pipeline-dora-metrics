@@ -45,15 +45,14 @@ public class DoraApiAction implements RootAction {
         int days = DurationFormatter.parseDays(daysParam, 30);
         long toMs = System.currentTimeMillis();
         long fromMs = toMs - ((long) days * 86400_000);
-        String pattern = getPattern();
 
         DoraCalculator calc = new DoraCalculator();
         JSONObject json = new JSONObject();
         json.put("period_days", days);
-        json.put("deployment_frequency", metricToJson(calc.deploymentFrequency(fromMs, toMs, pattern)));
-        json.put("lead_time", metricToJson(calc.leadTimeForChanges(fromMs, toMs, pattern)));
-        json.put("mttr", metricToJson(calc.meanTimeToRestore(fromMs, toMs, pattern)));
-        json.put("change_failure_rate", metricToJson(calc.changeFailureRate(fromMs, toMs, pattern)));
+        json.put("deployment_frequency", metricToJson(calc.deploymentFrequency(fromMs, toMs, DoraApiAction::shouldTrackJob)));
+        json.put("lead_time", metricToJson(calc.leadTimeForChanges(fromMs, toMs, DoraApiAction::shouldTrackJob)));
+        json.put("mttr", metricToJson(calc.meanTimeToRestore(fromMs, toMs, DoraApiAction::shouldTrackJob)));
+        json.put("change_failure_rate", metricToJson(calc.changeFailureRate(fromMs, toMs, DoraApiAction::shouldTrackJob)));
 
         return new org.kohsuke.stapler.json.JsonHttpResponse(json, 200);
     }
@@ -70,11 +69,15 @@ public class DoraApiAction implements RootAction {
         PipelineRanker ranker = new PipelineRanker();
         Jenkins jenkins = Jenkins.get();
         JSONObject json = new JSONObject();
-        json.put("slowest", rankingsToJson(filterVisible(ranker.slowestPipelines(fromMs, toMs, limit), jenkins)));
-        json.put("most_failing", rankingsToJson(filterVisible(ranker.mostFailingPipelines(fromMs, toMs, limit), jenkins)));
+        json.put("slowest", rankingsToJson(filterVisible(
+                ranker.slowestPipelines(fromMs, toMs, limit, DoraApiAction::shouldTrackJob), jenkins)));
+        json.put("most_failing", rankingsToJson(filterVisible(
+                ranker.mostFailingPipelines(fromMs, toMs, limit, DoraApiAction::shouldTrackJob), jenkins)));
         json.put("most_improved", rankingsToJson(filterVisible(
-                ranker.mostImproved(fromMs, toMs, fromMs - ((long) days * 86400_000), fromMs, limit), jenkins)));
-        json.put("flakiest", rankingsToJson(filterVisible(ranker.flakiestPipelines(fromMs, toMs, limit), jenkins)));
+                ranker.mostImproved(fromMs, toMs, fromMs - ((long) days * 86400_000), fromMs, limit,
+                        DoraApiAction::shouldTrackJob), jenkins)));
+        json.put("flakiest", rankingsToJson(filterVisible(
+                ranker.flakiestPipelines(fromMs, toMs, limit, DoraApiAction::shouldTrackJob), jenkins)));
 
         return new org.kohsuke.stapler.json.JsonHttpResponse(json, 200);
     }
@@ -91,6 +94,7 @@ public class DoraApiAction implements RootAction {
         List<BuildRecord> builds = (jobName != null && !jobName.isEmpty())
                 ? store.getBuilds(jobName, fromMs, toMs)
                 : store.getAllBuilds(fromMs, toMs);
+        builds = filterTrackedBuilds(builds);
 
         Map<String, List<BuildRecord>> byDate = builds.stream()
                 .collect(Collectors.groupingBy(b -> {
@@ -127,7 +131,7 @@ public class DoraApiAction implements RootAction {
         long toMs = System.currentTimeMillis();
         long fromMs = toMs - ((long) days * 86400_000);
 
-        List<BuildRecord> builds = MetricsStore.getInstance().getAllBuilds(fromMs, toMs);
+        List<BuildRecord> builds = filterTrackedBuilds(MetricsStore.getInstance().getAllBuilds(fromMs, toMs));
 
         if ("csv".equalsIgnoreCase(format)) {
             StringBuilder csv = new StringBuilder();
@@ -188,14 +192,20 @@ public class DoraApiAction implements RootAction {
         return pipelines.stream()
                 .filter(p -> {
                     Item item = jenkins.getItemByFullName(p.jobName);
-                    return item != null && item.hasPermission(Item.READ);
+                    return shouldTrackJob(p.jobName) && item != null && item.hasPermission(Item.READ);
                 })
                 .collect(java.util.stream.Collectors.toList());
     }
 
-    private String getPattern() {
+    private static List<BuildRecord> filterTrackedBuilds(List<BuildRecord> builds) {
+        return builds.stream()
+                .filter(b -> shouldTrackJob(b.jobName))
+                .collect(Collectors.toList());
+    }
+
+    private static boolean shouldTrackJob(String jobName) {
         DoraGlobalConfiguration config = DoraGlobalConfiguration.get();
-        return config != null ? config.getProductionJobPattern() : ".*";
+        return config == null || config.shouldTrackJob(jobName);
     }
 
     static JSONObject metricToJson(DoraMetric m) {

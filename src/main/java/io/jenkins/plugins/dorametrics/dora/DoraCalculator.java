@@ -9,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +52,21 @@ public class DoraCalculator {
      */
     public DoraMetric deploymentFrequency(long fromMs, long toMs, String jobPattern) {
         long successCount = store.countSuccessfulBuilds(fromMs, toMs, jobPattern);
+        return deploymentFrequencyForSuccessCount(fromMs, toMs, successCount);
+    }
+
+    /**
+     * Calculate deployment frequency after applying a job-name filter to stored builds.
+     * This is used by global views so current exclusion settings also hide historical data.
+     */
+    public DoraMetric deploymentFrequency(long fromMs, long toMs, Predicate<String> includeJob) {
+        long successCount = matchingBuilds(fromMs, toMs, includeJob).stream()
+                .filter(BuildRecord::isSuccess)
+                .count();
+        return deploymentFrequencyForSuccessCount(fromMs, toMs, successCount);
+    }
+
+    private DoraMetric deploymentFrequencyForSuccessCount(long fromMs, long toMs, long successCount) {
         double days = Math.max(1, (toMs - fromMs) / (double) 86400_000);
         double frequency = successCount / days;
 
@@ -72,6 +88,25 @@ public class DoraCalculator {
      */
     public DoraMetric leadTimeForChanges(long fromMs, long toMs, String jobPattern) {
         double avgMs = store.avgLeadTimeMs(fromMs, toMs, jobPattern);
+
+        return leadTimeMetric(avgMs);
+    }
+
+    /** Calculate lead time after applying a job-name filter to stored builds. */
+    public DoraMetric leadTimeForChanges(long fromMs, long toMs, Predicate<String> includeJob) {
+        double avgMs = matchingBuilds(fromMs, toMs, includeJob).stream()
+                .filter(BuildRecord::isSuccess)
+                .mapToLong(b -> {
+                    long commitTime = store.getEarliestCommitTimestamp(b.id);
+                    return commitTime > 0 ? (b.timestamp + b.durationMs) - commitTime : 0;
+                })
+                .filter(leadTime -> leadTime > 0)
+                .average()
+                .orElse(0);
+        return leadTimeMetric(avgMs);
+    }
+
+    private DoraMetric leadTimeMetric(double avgMs) {
 
         if (avgMs <= 0) {
             return new DoraMetric("Lead Time for Changes", "N/A", DoraBand.LOW, 0);
@@ -102,6 +137,15 @@ public class DoraCalculator {
                     .collect(Collectors.toList());
         }
 
+        return meanTimeToRestoreForBuilds(builds);
+    }
+
+    /** Calculate MTTR after applying a job-name filter to stored builds. */
+    public DoraMetric meanTimeToRestore(long fromMs, long toMs, Predicate<String> includeJob) {
+        return meanTimeToRestoreForBuilds(matchingBuilds(fromMs, toMs, includeJob));
+    }
+
+    private DoraMetric meanTimeToRestoreForBuilds(List<BuildRecord> builds) {
         Map<String, List<BuildRecord>> byJob = builds.stream()
                 .collect(Collectors.groupingBy(b -> b.jobName));
 
@@ -143,11 +187,22 @@ public class DoraCalculator {
      */
     public DoraMetric changeFailureRate(long fromMs, long toMs, String jobPattern) {
         long total = store.countTotalBuilds(fromMs, toMs, jobPattern);
+        long failures = store.countFailedBuilds(fromMs, toMs, jobPattern);
+        return changeFailureRateForCounts(total, failures);
+    }
+
+    /** Calculate change failure rate after applying a job-name filter to stored builds. */
+    public DoraMetric changeFailureRate(long fromMs, long toMs, Predicate<String> includeJob) {
+        List<BuildRecord> builds = matchingBuilds(fromMs, toMs, includeJob);
+        long total = builds.size();
+        long failures = builds.stream().filter(BuildRecord::isFailure).count();
+        return changeFailureRateForCounts(total, failures);
+    }
+
+    private DoraMetric changeFailureRateForCounts(long total, long failures) {
         if (total == 0) {
             return new DoraMetric("Change Failure Rate", "N/A", DoraBand.LOW, 0);
         }
-
-        long failures = store.countFailedBuilds(fromMs, toMs, jobPattern);
         double rate = (double) failures / total * 100;
 
         double cfrElite = config != null ? config.getCfrElitePercent() : 5.0;
@@ -161,6 +216,12 @@ public class DoraCalculator {
 
         return new DoraMetric("Change Failure Rate",
                 String.format("%.1f%%", rate), band, rate);
+    }
+
+    private List<BuildRecord> matchingBuilds(long fromMs, long toMs, Predicate<String> includeJob) {
+        return store.getAllBuilds(fromMs, toMs).stream()
+                .filter(b -> includeJob == null || includeJob.test(b.jobName))
+                .collect(Collectors.toList());
     }
 
     public static class DoraMetric {
