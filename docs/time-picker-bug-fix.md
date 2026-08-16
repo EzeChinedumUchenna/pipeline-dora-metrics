@@ -25,17 +25,43 @@ Selecting a preset or custom range now updates each dashboard area without reloa
 
 The pipeline rankings refreshed by the picker are Slowest Pipelines, Most Failing Pipelines, Most Improved, and Flakiest Pipelines. The pipelines API now returns `most_improved`, using the existing comparison of the selected period with the immediately preceding period of equal length.
 
+## Excluded-job filtering for historical data
+
+### Bug
+
+The **Excluded Job Pattern** setting was checked only when a build completed. It correctly prevented future matching builds from being inserted into the metrics database, but records collected before the exclusion was configured remained in the database and could still appear in dashboard results.
+
+For example, with an exclusion pattern containing `.*-pre-prod.*`, the job `data-sync-service-pre-prod` matched the exclusion rule but could still appear in a 30-day pipeline ranking when it had historical records in that period.
+
+### Fix
+
+The plugin now applies `DoraGlobalConfiguration.shouldTrackJob(jobName)` when it reads stored data for global dashboard and API results. This uses the same production, excluded-job, and folder rules used during build collection.
+
+Historical records are retained in SQLite, but excluded jobs no longer affect or appear in:
+
+- DORA KPI overview calculations
+- Trends and sparklines
+- Pipeline rankings and stage analytics
+- CSV/JSON API exports
+- Scheduled cloud-export snapshots
+
+No build data is deleted. If an excluded job is later included again, its retained historical data becomes available according to the current configuration and selected time range.
+
 ## Calculations not changed
 
-No DORA KPI formula or existing pipeline-ranking formula changed. The fix passes the selected date range to the existing backend calculations and renders the returned data in the dashboard.
+No DORA KPI formula or existing pipeline-ranking formula changed. The fixes change the selected date range and eligible jobs passed to existing calculations, then render the returned data in the dashboard.
 
 ## Files changed
 
 - `src/main/webapp/js/dora-dashboard.js`: selected-range requests and browser rendering.
 - `src/main/resources/io/jenkins/plugins/dorametrics/ui/DoraDashboardAction/index.jelly`: dynamic card, ranking, and export DOM targets.
 - `src/main/java/io/jenkins/plugins/dorametrics/ui/DoraApiAction.java`: `most_improved` pipelines response.
-- `src/main/java/io/jenkins/plugins/dorametrics/ui/DoraDashboardAction.java`: configured ranking limit exposed to the client.
+- `src/main/java/io/jenkins/plugins/dorametrics/ui/DoraDashboardAction.java`: configured ranking limit and read-time job filtering for the initial dashboard render.
+- `src/main/java/io/jenkins/plugins/dorametrics/dora/DoraCalculator.java`: read-time job filtering for global DORA KPI calculations.
+- `src/main/java/io/jenkins/plugins/dorametrics/rankings/PipelineRanker.java`: read-time job filtering for rankings and stage analytics.
+- `src/main/java/io/jenkins/plugins/dorametrics/store/MetricsExporter.java`: read-time job filtering for scheduled exports.
 - `src/test/java/io/jenkins/plugins/dorametrics/ui/DoraDashboardResourceTest.java`: regression coverage.
+- `src/test/java/io/jenkins/plugins/dorametrics/dora/DoraCalculatorTest.java` and `src/test/java/io/jenkins/plugins/dorametrics/rankings/PipelineRankerTest.java`: historical exclusion coverage.
 
 ## Verification
 
@@ -43,7 +69,10 @@ Run:
 
 ```powershell
 mvn -Dtest=DoraDashboardResourceTest test
+mvn '-Dtest=DoraCalculatorTest,PipelineRankerTest' test
 mvn clean package
 ```
 
 After installing `target/pipeline-dora-metrics.hpi`, use the browser Network tab while selecting 7d, 30d, or 90d. The `overview`, `trends`, `pipelines`, and CSV export requests should use the same selected `days` value.
+
+To verify exclusion filtering, save an Excluded Job Pattern such as `.*-pre-prod.*`, refresh the dashboard, and confirm that matching jobs no longer appear in KPI results, trends, rankings, or exports even if they have historical build records within the selected date range.
