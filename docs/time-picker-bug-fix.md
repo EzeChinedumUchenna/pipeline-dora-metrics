@@ -1,4 +1,4 @@
-# Dashboard Time Picker Bug Fix
+# Dashboard Time Picker Bug Fix...
 
 ## Affected version
 
