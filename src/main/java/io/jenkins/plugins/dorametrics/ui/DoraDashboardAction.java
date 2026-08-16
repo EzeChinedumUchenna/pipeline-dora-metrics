@@ -121,6 +121,11 @@ public class DoraDashboardAction implements RootAction {
         return config != null ? config.getDashboardTopN() : 10;
     }
 
+    /** Number of ranking rows shown in the dashboard. */
+    public int getDashboardTopN() {
+        return getTopN();
+    }
+
     private long now() { return System.currentTimeMillis(); }
 
     private long thirtyDaysAgo() { return now() - (30L * 86400_000); }

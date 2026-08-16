@@ -51,6 +51,9 @@ function getBaseUrl() {
 
 function loadCharts(days) {
     var base = getBaseUrl();
+    loadOverview(base, days);
+    loadPipelineRankings(base, days);
+    updateExportUrl(base, days);
     fetch(base + '/dora-api/trends?days=' + days)
         .then(function(r) { return r.json(); })
         .then(function(data) {
@@ -61,6 +64,76 @@ function loadCharts(days) {
             }
         })
         .catch(function(e) { console.log('Chart load error:', e); });
+}
+
+function updateExportUrl(base, days) {
+    var exportLink = document.getElementById('dora-export-csv');
+    if (exportLink) exportLink.href = base + '/dora-api/export?days=' + days + '&format=csv';
+}
+
+function loadOverview(base, days) {
+    fetch(base + '/dora-api/overview?days=' + days)
+        .then(function(r) { return r.json(); })
+        .then(renderOverview)
+        .catch(function(e) { console.log('Overview load error:', e); });
+}
+
+function renderOverview(data) {
+    var metrics = [
+        ['deployment_frequency', 'df'],
+        ['lead_time', 'lt'],
+        ['mttr', 'mttr'],
+        ['change_failure_rate', 'cfr']
+    ];
+    metrics.forEach(function(metric) {
+        var dataMetric = data[metric[0]];
+        if (!dataMetric) return;
+        var value = document.getElementById('dora-value-' + metric[1]);
+        var band = document.getElementById('dora-band-' + metric[1]);
+        if (value) value.textContent = dataMetric.value;
+        if (band) {
+            band.textContent = dataMetric.band;
+            band.style.backgroundColor = dataMetric.color;
+        }
+    });
+}
+
+function loadPipelineRankings(base, days) {
+    var rankings = document.getElementById('dora-pipeline-rankings');
+    if (!rankings) return;
+    var limit = rankings.getAttribute('data-limit') || 10;
+    fetch(base + '/dora-api/pipelines?days=' + days + '&limit=' + limit)
+        .then(function(r) { return r.json(); })
+        .then(function(data) { renderPipelineRankings(data, base); })
+        .catch(function(e) { console.log('Pipeline rankings load error:', e); });
+}
+
+function renderPipelineRankings(data, base) {
+    renderRankingRows('dora-rank-slowest', data.slowest, base);
+    renderRankingRows('dora-rank-most-failing', data.most_failing, base);
+    renderRankingRows('dora-rank-most-improved', data.most_improved, base);
+    renderRankingRows('dora-rank-flakiest', data.flakiest, base);
+}
+
+function renderRankingRows(id, rankings, base) {
+    var body = document.getElementById(id);
+    if (!body || !rankings) return;
+    body.replaceChildren();
+    rankings.forEach(function(ranking, index) {
+        var row = body.insertRow();
+        var position = row.insertCell();
+        var job = row.insertCell();
+        var value = row.insertCell();
+        var count = row.insertCell();
+        position.textContent = index + 1;
+        var link = document.createElement('a');
+        link.className = 'jenkins-table__link';
+        link.href = base + '/job/' + ranking.job.split('/').map(encodeURIComponent).join('/job/') + '/dora-metrics/';
+        link.textContent = ranking.job;
+        job.appendChild(link);
+        value.textContent = ranking.value;
+        count.textContent = ranking.build_count;
+    });
 }
 
 function renderBuildChart(trends) {

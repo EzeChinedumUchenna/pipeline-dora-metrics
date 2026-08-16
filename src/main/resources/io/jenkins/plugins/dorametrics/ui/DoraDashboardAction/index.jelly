@@ -22,7 +22,7 @@
                         <input type="date" id="dora-to" class="jenkins-input" />
                         <button id="dora-apply-date" class="jenkins-button">Apply</button>
                     </div>
-                    <a class="jenkins-button" href="${rootURL}/dora-api/export?format=csv" download="dora-metrics.csv">Export CSV</a>
+                    <a id="dora-export-csv" class="jenkins-button" href="${rootURL}/dora-api/export?days=30&amp;format=csv" download="dora-metrics.csv">Export CSV</a>
                 </div>
             </l:app-bar>
 
@@ -30,29 +30,29 @@
             <div class="dora-cards">
                 <j:set var="df" value="${it.deploymentFrequency}"/>
                 <l:card title="Deployment Frequency">
-                    <div class="dora-card-value">${df.displayValue}</div>
-                    <span class="dora-card-band" style="background-color: ${df.band.color}">${df.band.label}</span>
+                    <div class="dora-card-value" id="dora-value-df">${df.displayValue}</div>
+                    <span class="dora-card-band" id="dora-band-df" style="background-color: ${df.band.color}">${df.band.label}</span>
                     <canvas class="dora-sparkline" id="spark-df"></canvas>
                 </l:card>
 
                 <j:set var="leadTime" value="${it.leadTime}"/>
                 <l:card title="Lead Time for Changes">
-                    <div class="dora-card-value">${leadTime.displayValue}</div>
-                    <span class="dora-card-band" style="background-color: ${leadTime.band.color}">${leadTime.band.label}</span>
+                    <div class="dora-card-value" id="dora-value-lt">${leadTime.displayValue}</div>
+                    <span class="dora-card-band" id="dora-band-lt" style="background-color: ${leadTime.band.color}">${leadTime.band.label}</span>
                     <canvas class="dora-sparkline" id="spark-lt"></canvas>
                 </l:card>
 
                 <j:set var="mttr" value="${it.mttr}"/>
                 <l:card title="Mean Time to Restore">
-                    <div class="dora-card-value">${mttr.displayValue}</div>
-                    <span class="dora-card-band" style="background-color: ${mttr.band.color}">${mttr.band.label}</span>
+                    <div class="dora-card-value" id="dora-value-mttr">${mttr.displayValue}</div>
+                    <span class="dora-card-band" id="dora-band-mttr" style="background-color: ${mttr.band.color}">${mttr.band.label}</span>
                     <canvas class="dora-sparkline" id="spark-mttr"></canvas>
                 </l:card>
 
                 <j:set var="cfr" value="${it.changeFailureRate}"/>
                 <l:card title="Change Failure Rate">
-                    <div class="dora-card-value">${cfr.displayValue}</div>
-                    <span class="dora-card-band" style="background-color: ${cfr.band.color}">${cfr.band.label}</span>
+                    <div class="dora-card-value" id="dora-value-cfr">${cfr.displayValue}</div>
+                    <span class="dora-card-band" id="dora-band-cfr" style="background-color: ${cfr.band.color}">${cfr.band.label}</span>
                     <canvas class="dora-sparkline" id="spark-cfr"></canvas>
                 </l:card>
             </div>
@@ -73,14 +73,14 @@
             </div>
 
             <!-- Pipeline Rankings -->
-            <div class="dora-section">
+            <div class="dora-section" id="dora-pipeline-rankings" data-limit="${it.dashboardTopN}">
                 <div class="jenkins-section__title dora-toggle">Pipeline Rankings <span class="dora-chevron">▾</span></div>
                 <div class="dora-section-body">
                     <div class="dora-tables">
                         <l:card title="Slowest Pipelines">
                             <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Pipeline</th><th>Avg Duration</th><th>Builds</th></tr></thead>
-                                <tbody>
+                                <tbody id="dora-rank-slowest">
                                 <j:forEach var="p" items="${it.slowestPipelines}" varStatus="i">
                                     <tr><td>${i.index + 1}</td><td><a class="jenkins-table__link" href="${rootURL}/${it.jobUrl(p.jobName)}/dora-metrics/">${p.jobName}</a></td><td>${p.displayValue}</td><td>${p.buildCount}</td></tr>
                                 </j:forEach>
@@ -91,7 +91,7 @@
                         <l:card title="Most Failing Pipelines">
                             <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Pipeline</th><th>Failure Rate</th><th>Builds</th></tr></thead>
-                                <tbody>
+                                <tbody id="dora-rank-most-failing">
                                 <j:forEach var="p" items="${it.mostFailingPipelines}" varStatus="i">
                                     <tr><td>${i.index + 1}</td><td><a class="jenkins-table__link" href="${rootURL}/${it.jobUrl(p.jobName)}/dora-metrics/">${p.jobName}</a></td><td>${p.displayValue}</td><td>${p.buildCount}</td></tr>
                                 </j:forEach>
@@ -102,7 +102,7 @@
                         <l:card title="Most Improved (vs Previous Period)">
                             <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Pipeline</th><th>Change</th><th>Builds</th></tr></thead>
-                                <tbody>
+                                <tbody id="dora-rank-most-improved">
                                 <j:forEach var="p" items="${it.mostImprovedPipelines}" varStatus="i">
                                     <tr><td>${i.index + 1}</td><td><a class="jenkins-table__link" href="${rootURL}/${it.jobUrl(p.jobName)}/dora-metrics/">${p.jobName}</a></td><td>${p.displayValue}</td><td>${p.buildCount}</td></tr>
                                 </j:forEach>
@@ -113,7 +113,7 @@
                         <l:card title="Flakiest Pipelines">
                             <table class="jenkins-table jenkins-table--small">
                                 <thead><tr><th>#</th><th>Pipeline</th><th>Flaky Score</th><th>Builds</th></tr></thead>
-                                <tbody>
+                                <tbody id="dora-rank-flakiest">
                                 <j:forEach var="p" items="${it.flakiestPipelines}" varStatus="i">
                                     <tr><td>${i.index + 1}</td><td><a class="jenkins-table__link" href="${rootURL}/${it.jobUrl(p.jobName)}/dora-metrics/">${p.jobName}</a></td><td>${p.displayValue}</td><td>${p.buildCount}</td></tr>
                                 </j:forEach>

@@ -72,6 +72,8 @@ public class DoraApiAction implements RootAction {
         JSONObject json = new JSONObject();
         json.put("slowest", rankingsToJson(filterVisible(ranker.slowestPipelines(fromMs, toMs, limit), jenkins)));
         json.put("most_failing", rankingsToJson(filterVisible(ranker.mostFailingPipelines(fromMs, toMs, limit), jenkins)));
+        json.put("most_improved", rankingsToJson(filterVisible(
+                ranker.mostImproved(fromMs, toMs, fromMs - ((long) days * 86400_000), fromMs, limit), jenkins)));
         json.put("flakiest", rankingsToJson(filterVisible(ranker.flakiestPipelines(fromMs, toMs, limit), jenkins)));
 
         return new org.kohsuke.stapler.json.JsonHttpResponse(json, 200);
